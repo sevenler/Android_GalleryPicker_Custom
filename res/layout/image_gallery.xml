@@ -22,7 +22,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-        <view class="com.android.camera.GridViewSpecial"
+        <view class="com.androidesk.camera.GridViewSpecial"
                 android:id="@+id/grid"
                 android:focusable="true"
                 android:layout_width="match_parent"

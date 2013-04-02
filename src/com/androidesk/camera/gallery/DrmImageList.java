@@ -18,9 +18,9 @@ package com.androidesk.camera.gallery;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.drm.DrmStore;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.provider.DrmStore;
 
 /**
  * Represents an ordered collection of Image objects from the DRM provider.
@@ -29,9 +29,12 @@ public class DrmImageList extends ImageList implements IImageList {
 
     // TODO: get other field from database too ?
     private static final String[] DRM_IMAGE_PROJECTION = new String[] {
-        DrmStore.Images._ID,
+        /*DrmStore.Images._ID,
         DrmStore.Images.DATA,
-        DrmStore.Images.MIME_TYPE,
+        DrmStore.Images.MIME_TYPE,*/
+    	"title",
+        "_data",
+        "mime_type"
     };
 
     private static final int INDEX_ID = 0;

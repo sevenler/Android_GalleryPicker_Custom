@@ -16,9 +16,11 @@
 
 package com.androidesk.camera;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Video;
 import android.util.Log;
@@ -110,7 +112,8 @@ public class BitmapManager {
         getOrCreateThreadStatus(t).mState = State.ALLOW;
     }
 
-    public synchronized void cancelThreadDecoding(Thread t, ContentResolver cr) {
+    @TargetApi(Build.VERSION_CODES.FROYO)
+	public synchronized void cancelThreadDecoding(Thread t, ContentResolver cr) {
         ThreadStatus status = getOrCreateThreadStatus(t);
         status.mState = State.CANCEL;
         if (status.mOptions != null) {
@@ -125,8 +128,10 @@ public class BitmapManager {
         try {
             synchronized (status) {
                 while (status.mThumbRequesting) {
-                    Images.Thumbnails.cancelThumbnailRequest(cr, -1, t.getId());
-                    Video.Thumbnails.cancelThumbnailRequest(cr, -1, t.getId());
+                	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO){
+                		Images.Thumbnails.cancelThumbnailRequest(cr, -1, t.getId());
+                        Video.Thumbnails.cancelThumbnailRequest(cr, -1, t.getId());
+                	}
                     status.wait(200);
                 }
             }
@@ -135,7 +140,7 @@ public class BitmapManager {
         }
     }
 
-    public Bitmap getThumbnail(ContentResolver cr, long origId, int kind,
+	public Bitmap getThumbnail(ContentResolver cr, long origId, int kind,
             BitmapFactory.Options options, boolean isVideo) {
         Thread t = Thread.currentThread();
         ThreadStatus status = getOrCreateThreadStatus(t);
@@ -150,8 +155,8 @@ public class BitmapManager {
                 status.mThumbRequesting = true;
             }
             if (isVideo) {
-                return Video.Thumbnails.getThumbnail(cr, origId, t.getId(),
-                        kind, null);
+        		return Video.Thumbnails.getThumbnail(cr, origId, t.getId(),
+        				kind, null);
             } else {
                 return Images.Thumbnails.getThumbnail(cr, origId, t.getId(),
                         kind, null);

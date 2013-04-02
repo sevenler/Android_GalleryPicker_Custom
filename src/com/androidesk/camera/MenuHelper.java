@@ -712,8 +712,10 @@ public class MenuHelper {
                     return onViewPlayClicked(onInvoke, activity);
                 }
             });
-            videoPlayItem.setIcon(
-                    com.android.internal.R.drawable.ic_menu_play_clip);
+            /*videoPlayItem.setIcon(
+                    com.android.internal.R.drawable.ic_menu_play_clip);*/
+            videoPlayItem.setIcon(android.R.drawable.ic_media_play);
+            
             requiresVideoItems.add(videoPlayItem);
         }
 

@@ -16,15 +16,14 @@
 
 package com.androidesk.camera;
 
-import com.androidesk.camera.gallery.BaseImageList;
-import com.androidesk.camera.gallery.DrmImageList;
-import com.androidesk.camera.gallery.IImage;
-import com.androidesk.camera.gallery.IImageList;
-import com.androidesk.camera.gallery.ImageList;
-import com.androidesk.camera.gallery.ImageListUber;
-import com.androidesk.camera.gallery.SingleImageList;
-import com.androidesk.camera.gallery.VideoList;
-import com.androidesk.camera.gallery.VideoObject;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -37,19 +36,19 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.provider.DrmStore;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.util.Log;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import com.androidesk.camera.gallery.BaseImageList;
+import com.androidesk.camera.gallery.DrmImageList;
+import com.androidesk.camera.gallery.IImage;
+import com.androidesk.camera.gallery.IImageList;
+import com.androidesk.camera.gallery.ImageList;
+import com.androidesk.camera.gallery.ImageListUber;
+import com.androidesk.camera.gallery.SingleImageList;
+import com.androidesk.camera.gallery.VideoList;
+import com.androidesk.camera.gallery.VideoObject;
 
 /**
  * ImageManager is used to retrieve and store images
@@ -128,6 +127,9 @@ public class ImageManager {
     public static final int INCLUDE_IMAGES = (1 << 0);
     public static final int INCLUDE_DRM_IMAGES = (1 << 1);
     public static final int INCLUDE_VIDEOS = (1 << 2);
+    
+    public static final String AUTHORITY = "drm";
+    public static final Uri DRM_CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/images");
 
     // Sort
     public static final int SORT_ASCENDING = 1;
@@ -318,7 +320,7 @@ public class ImageManager {
             }
             if ((inclusion & INCLUDE_DRM_IMAGES) != 0) {
                 l.add(new DrmImageList(
-                        cr, DrmStore.Images.CONTENT_URI, sort, bucketId));
+                        cr, DRM_CONTENT_URI, sort, bucketId));
             }
         }
 

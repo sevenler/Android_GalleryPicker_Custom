@@ -80,7 +80,7 @@ public class ActionMenuButton extends TextView {
         rect.set(left + layout.getLineLeft(0) - PADDING_H,
                  top + layout.getLineTop(0) - PADDING_V,
                  Math.min(left + layout.getLineRight(0) + PADDING_H,
-                          mScrollX + mRight - mLeft),
+                		 getScaleX() + getRight() - getLeft()),
                  top + layout.getLineBottom(0) + PADDING_V);
         canvas.drawRoundRect(rect, CORNER_RADIUS, CORNER_RADIUS, mPaint);
 

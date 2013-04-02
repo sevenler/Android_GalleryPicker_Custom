@@ -22,11 +22,17 @@ import com.androidesk.camera.Util;
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory.Options;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.util.Log;
 
+import java.io.Closeable;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -168,9 +174,14 @@ public abstract class BaseImage implements IImage {
     public Bitmap miniThumbBitmap() {
         Bitmap b = null;
         try {
-            long id = mId;
-            b = BitmapManager.instance().getThumbnail(mContentResolver, id,
-                    Images.Thumbnails.MICRO_KIND, null, false);
+			long id = mId;
+			b = BitmapManager.instance().getThumbnail(mContentResolver, id,
+					Images.Thumbnails.MINI_KIND, null, false);
+			
+			//如果系统的缩略图有问题，可以执行下面的decode
+            /*BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            b = requestDecode(mDataPath, options, 300);*/
         } catch (Throwable ex) {
             Log.e(TAG, "miniThumbBitmap got exception", ex);
             return null;
@@ -187,5 +198,68 @@ public abstract class BaseImage implements IImage {
     @Override
     public String toString() {
         return mUri.toString();
+    }
+    
+    
+    public static Bitmap ensureGLCompatibleBitmap(Bitmap bitmap) {
+        if (bitmap == null || bitmap.getConfig() != null) return bitmap;
+        Bitmap newBitmap = bitmap.copy(Config.ARGB_8888, false);
+        bitmap.recycle();
+        return newBitmap;
+    }
+	
+	public static int computeSampleSizeLarger(int w, int h,
+            int minSideLength) {
+        int initialSize = Math.max(w / minSideLength, h / minSideLength);
+        if (initialSize <= 1) return 1;
+
+        return initialSize <= 8
+                ? prevPowerOf2(initialSize)
+                : initialSize / 8 * 8;
+    }
+	
+	public static int prevPowerOf2(int n) {
+		if (n <= 0)
+			throw new IllegalArgumentException();
+		return Integer.highestOneBit(n);
+	}
+	
+	public static Bitmap requestDecode(final String filePath,
+            Options options, int targetSize) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(filePath);
+            FileDescriptor fd = fis.getFD();
+            return requestDecode(fd, options, targetSize);
+        } catch (Exception ex) {
+            Log.w(TAG, ex);
+            return null;
+        } finally {
+            closeSilently(fis);
+        }
+    }
+	
+	public static void closeSilently(Closeable c) {
+        if (c == null) return;
+        try {
+            c.close();
+        } catch (Throwable t) {
+            Log.w(TAG, "close fail", t);
+        }
+    }
+
+    public static Bitmap requestDecode(FileDescriptor fd,
+            Options options, int targetSize) {
+        if (options == null) options = new Options();
+
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFileDescriptor(fd, null, options);
+
+        options.inSampleSize = computeSampleSizeLarger(
+                options.outWidth, options.outHeight, targetSize);
+        options.inJustDecodeBounds = false;
+
+        Bitmap result = BitmapFactory.decodeFileDescriptor(fd, null, options);
+        return ensureGLCompatibleBitmap(result);
     }
 }

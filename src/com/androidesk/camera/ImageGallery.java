@@ -37,8 +37,10 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Bitmap.Config;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -783,6 +785,29 @@ public class ImageGallery extends NoSearchActivity implements
 
     private final Paint mPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
 
+    public static Bitmap scaleCenterCrop(Bitmap source, int sourceWidth, int sourceHeight, int targetWidth, int targetHeight) {
+		Bitmap bit = Bitmap.createBitmap(targetWidth, targetHeight, Config.RGB_565);
+		Canvas canvas = new Canvas(bit);
+		Matrix matrix = new Matrix();
+		
+        float scale;
+		float dx = 0;
+		float dy = 0;
+        
+        if (sourceWidth * targetHeight > targetWidth * sourceHeight) {
+            scale = (float) targetHeight / (float) sourceHeight; 
+            dx = (targetWidth - sourceWidth * scale) * 0.5f;
+        } else {
+            scale = (float) targetWidth / (float) sourceWidth;
+            dy = (targetHeight - sourceHeight * scale) * 0.5f;
+        }
+        matrix.setScale(scale, scale);
+        matrix.postTranslate((int) (dx + 0.5f), (int) (dy + 0.5f));
+        
+        canvas.drawBitmap(source, matrix, null);
+        return bit;
+	}
+    
     public void drawImage(Canvas canvas, IImage image,
             Bitmap b, int xPos, int yPos, int w, int h) {
         if (b != null) {
@@ -792,7 +817,7 @@ public class ImageGallery extends NoSearchActivity implements
 
             int bw = b.getWidth();
             int bh = b.getHeight();
-
+            
             int deltaW = bw - w;
             int deltaH = bh - h;
 
@@ -805,10 +830,14 @@ public class ImageGallery extends NoSearchActivity implements
                 mDstRect.set(xPos, yPos, xPos + w, yPos + h);
                 canvas.drawBitmap(b, mSrcRect, mDstRect, null);
             } else {
-                mSrcRect.set(0, 0, bw, bh);
+            	Bitmap bit = scaleCenterCrop(b, bw, bh, w, h);
+    			b.recycle();
+                mSrcRect.set(0, 0, bit.getWidth(), bit.getHeight());
                 mDstRect.set(xPos, yPos, xPos + w, yPos + h);
-                canvas.drawBitmap(b, mSrcRect, mDstRect, mPaint);
+                canvas.drawBitmap(bit, mSrcRect, mDstRect, mPaint);
             }
+        	
+        	
         } else {
             // If the thumbnail cannot be drawn, put up an error icon
             // instead

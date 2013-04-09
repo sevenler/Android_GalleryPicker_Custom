@@ -53,6 +53,7 @@ class GridViewSpecial extends View {
     public static interface Listener {
         public void onImageClicked(int index);
         public void onImageTapped(int index);
+        public void onImageConfirmed(int index);
         public void onLayoutComplete(boolean changed);
 
         /**
@@ -319,6 +320,24 @@ class GridViewSpecial extends View {
         private AudioManager mAudioManager;
 
         @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+        	if (!canHandleEvent()) return false;
+            int index = computeSelectedIndex(e.getX(), e.getY());
+            if (index >= 0 && index < mCount) {
+                // Play click sound.
+                if (mAudioManager == null) {
+                    mAudioManager = (AudioManager) getContext()
+                            .getSystemService(Context.AUDIO_SERVICE);
+                }
+                mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
+
+                mListener.onImageTapped(index);
+                return true;
+            }
+            return false;
+        }
+        
+        @Override
         public boolean onDown(MotionEvent e) {
             if (!canHandleEvent()) return false;
             if (mScroller != null && !mScroller.isFinished()) {
@@ -371,7 +390,7 @@ class GridViewSpecial extends View {
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            if (!canHandleEvent()) return false;
+        	if (!canHandleEvent()) return false;
             int index = computeSelectedIndex(e.getX(), e.getY());
             if (index >= 0 && index < mCount) {
                 // Play click sound.
@@ -381,7 +400,7 @@ class GridViewSpecial extends View {
                 }
                 mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
 
-                mListener.onImageTapped(index);
+                mListener.onImageConfirmed(index);
                 return true;
             }
             return false;

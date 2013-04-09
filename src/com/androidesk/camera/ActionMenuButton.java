@@ -18,10 +18,12 @@ package com.androidesk.camera;
 
 import com.androidesk.gallery.R;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.Build;
 import android.text.Layout;
 import android.util.AttributeSet;
 import android.widget.TextView;
@@ -70,6 +72,7 @@ public class ActionMenuButton extends TextView {
         super.drawableStateChanged();
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     public void draw(Canvas canvas) {
         final Layout layout = getLayout();
@@ -77,10 +80,12 @@ public class ActionMenuButton extends TextView {
         final int left = getCompoundPaddingLeft();
         final int top = getExtendedPaddingTop();
 
+        
+        float scaleX = (Build.VERSION.SDK_INT >= 11) ? getScaleX() : 0F;
         rect.set(left + layout.getLineLeft(0) - PADDING_H,
                  top + layout.getLineTop(0) - PADDING_V,
                  Math.min(left + layout.getLineRight(0) + PADDING_H,
-                		 getScaleX() + getRight() - getLeft()),
+                		 scaleX + getRight() - getLeft()),
                  top + layout.getLineBottom(0) + PADDING_V);
         canvas.drawRoundRect(rect, CORNER_RADIUS, CORNER_RADIUS, mPaint);
 

@@ -681,6 +681,10 @@ public class ImageGallery extends NoSearchActivity implements
             onImageClicked(index);
         }
     }
+    
+    @Override
+	public void onImageConfirmed(int index) {
+	}
 
     private class CreateContextMenuListener implements
             View.OnCreateContextMenuListener {
@@ -1047,5 +1051,4 @@ public class ImageGallery extends NoSearchActivity implements
         mMultiSelected = new HashSet<IImage>();
         mGvs.invalidate();
     }
-
 }

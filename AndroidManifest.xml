@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.androidesk.gallery" >
 
-    <uses-sdk android:minSdkVersion="11" />
+    <uses-sdk android:minSdkVersion="8" />
 
     <original-package android:name="com.androidesk.gallery" />
 
@@ -20,7 +20,7 @@
     <uses-permission android:name="android.permission.READ_SMS" />
 
     <application
-        android:icon="@drawable/ic_launcher_camera"
+        android:icon="@drawable/indicator_autocrop"
         android:label="@string/camera_label"
         android:taskAffinity="" >
         <activity

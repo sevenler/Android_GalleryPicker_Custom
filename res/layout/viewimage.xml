@@ -42,6 +42,11 @@
                     android:focusableInTouchMode="true"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
+        <com.androidesk.camera.ImageViewTouch android:id="@+id/image_next_show"
+                    android:background="#FF000000"
+                    android:focusableInTouchMode="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
     </AbsoluteLayout>
     <ImageView android:id="@+id/prev_image"
             android:clickable="true"

@@ -16,12 +16,8 @@
 
 package com.androidesk.camera;
 
-import com.androidesk.camera.gallery.IImage;
-import com.androidesk.camera.gallery.IImageList;
-import com.androidesk.camera.gallery.VideoObject;
-import com.androidesk.gallery.R;
+import java.util.Random;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -38,17 +34,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnTouchListener;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 import android.widget.ZoomButtonsController;
 
-
-import java.util.Random;
+import com.androidesk.camera.gallery.IImage;
+import com.androidesk.camera.gallery.IImageList;
+import com.androidesk.camera.gallery.VideoObject;
+import com.androidesk.gallery.R;
 
 // This activity can display a whole picture and navigate them in a specific
 // gallery. It has two modes: normal mode and slide show mode. In normal mode
@@ -97,6 +96,9 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
     private int mAnimationIndex;
     private Animation [] mSlideShowInAnimation;
     private Animation [] mSlideShowOutAnimation;
+    
+    private Animation [] mNormalShowInAnimation;
+    private Animation [] mNormalShowOutAnimation;
 
     private SharedPreferences mPrefs;
 
@@ -127,6 +129,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 
     // The image view displayed for normal mode.
     private ImageViewTouch mImageView;
+    private ImageViewTouch mImageViewNextShow;
     // This is the cache for thumbnail bitmaps.
     private BitmapCache mCache;
     private MenuHelper.MenuItemsResult mImageMenuRunnable;
@@ -410,6 +413,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
                         // call setImage() only if we still have some images.
                         if (mAllImages.getCount() > 0) {
                             mImageView.clear();
+                            mImageViewNextShow.clear();
                             setImage(mCurrentPosition, false);
                         }
                     }
@@ -444,6 +448,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
                 }
             }
             mImageView.clear();
+            mImageViewNextShow.clear();
             mCache.clear();  // Because the position number is changed.
             setImage(mCurrentPosition, true);
         }
@@ -479,8 +484,27 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         }
         return b;
     }
+    
+    private void nextImageWithAnimation(boolean isToRight){
+    	Animation in = mNormalShowInAnimation[0];
+    	Animation out = mNormalShowOutAnimation[0];
+		if (!isToRight) {
+			in = mNormalShowInAnimation[1];
+			out = mNormalShowOutAnimation[1];
+		}
+		mImageViewNextShow.startAnimation(in);
+    	mImageView.startAnimation(out);
+    	mImageViewNextShow.setVisibility(View.VISIBLE);
+    	mImageView.setVisibility(View.INVISIBLE);
+    	
+    	
+    	ImageViewTouch view = mImageView;
+    	mImageView = mImageViewNextShow;
+    	mImageViewNextShow = view;
+    }
 
     void setImage(int pos, boolean showControls) {
+    	nextImageWithAnimation((pos >= mCurrentPosition) ? true : false);
         mCurrentPosition = pos;
 
         Bitmap b = mCache.getBitmap(pos);
@@ -549,7 +573,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         if (showControls) showOnScreenControls();
         scheduleDismissOnScreenControls();
     }
-
+    
     @Override
     public void onCreate(Bundle instanceState) {
         super.onCreate(instanceState);
@@ -566,10 +590,14 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.viewimage);
 
+        mCache = new BitmapCache(5);
         mImageView = (ImageViewTouch) findViewById(R.id.image);
         mImageView.setEnableTrackballScroll(true);
-        mCache = new BitmapCache(3);
         mImageView.setRecycler(mCache);
+        mImageViewNextShow = (ImageViewTouch) findViewById(R.id.image_next_show);
+        mImageViewNextShow.setEnableTrackballScroll(true);
+        mImageViewNextShow.setRecycler(mCache);
+        mImageViewNextShow.setVisibility(View.INVISIBLE);
 
         makeGetter();
 
@@ -580,12 +608,19 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
             makeInAnimation(R.anim.slide_in),
             makeInAnimation(R.anim.slide_in_vertical),
         };
-
         mSlideShowOutAnimation = new Animation[] {
             makeOutAnimation(R.anim.transition_out),
             makeOutAnimation(R.anim.slide_out),
             makeOutAnimation(R.anim.slide_out_vertical),
         };
+        mNormalShowInAnimation = new Animation[] {
+                makeInAnimation(R.anim.slide_in),
+                makeInAnimation(R.anim.slide_in_to_left),
+            };
+        mNormalShowOutAnimation = new Animation[] {
+                makeInAnimation(R.anim.slide_out),
+                makeInAnimation(R.anim.slide_out_to_left),
+            };
 
         mSlideShowImageViews[0] =
                 (ImageViewTouchBase) findViewById(R.id.image1_slideShow);
@@ -702,6 +737,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
                     | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
             mImageView.clear();
+            mImageViewNextShow.clear();
             mActionIconPanel.setVisibility(View.GONE);
 
             slideshowPanel.getRootView().requestLayout();
@@ -740,7 +776,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
                 mActionIconPanel.setVisibility(View.VISIBLE);
             }
 
-            ImageViewTouchBase dst = mImageView;
+            //ImageViewTouchBase dst = mImageView;
             for (ImageViewTouchBase ivt : mSlideShowImageViews) {
                 ivt.clear();
             }
@@ -973,6 +1009,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 
         hideOnScreenControls();
         mImageView.clear();
+        mImageViewNextShow.clear();
         mCache.clear();
 
         for (ImageViewTouchBase iv : mSlideShowImageViews) {

@@ -16,20 +16,22 @@
 
 package com.androidesk.camera;
 
-import com.androidesk.camera.gallery.IImage;
-import com.androidesk.camera.gallery.IImageList;
-import com.androidesk.camera.gallery.VideoObject;
-import com.androidesk.gallery.R;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Random;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -38,17 +40,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnTouchListener;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ProgressBar;
 import android.widget.Toast;
-import android.widget.ZoomButtonsController;
 
-
-import java.util.Random;
+import com.androidesk.camera.gallery.IImage;
+import com.androidesk.camera.gallery.IImageList;
+import com.androidesk.camera.gallery.VideoObject;
+import com.androidesk.gallery.R;
 
 // This activity can display a whole picture and navigate them in a specific
 // gallery. It has two modes: normal mode and slide show mode. In normal mode
@@ -122,11 +126,95 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
     private final ImageViewTouchBase [] mSlideShowImageViews =
             new ImageViewTouchBase[2];
 
-    GestureDetector mGestureDetector;
-    private ZoomButtonsController mZoomButtonsController;
-
     // The image view displayed for normal mode.
     private ImageViewTouch mImageView;
+    private ViewPager mImagePager;
+    private final int CACHE_SIZE = 3;
+    private final HashMap<Integer, ImageViewTouch> mImagePagerItems = new LinkedHashMap<Integer, ImageViewTouch>(CACHE_SIZE);
+    private ProgressBar mProgress;
+    
+    private MyPagerAdapter mpagerAdapter;
+    class MyPagerAdapter extends PagerAdapter{
+    	private GestureDetector mGestureDetector;
+		private OnTouchListener rootListener;
+		
+		public MyPagerAdapter() {
+			super();
+			
+			this.mGestureDetector = new GestureDetector(ViewImage.this, new MyGestureListener());
+			final OnTouchListener buttonTouchListener = new OnTouchListener() {
+	            public boolean onTouch(View v, MotionEvent event) {
+	                scheduleDismissOnScreenControls();
+	                return false;
+	            }
+	        };
+	        rootListener = new OnTouchListener() {
+	            public boolean onTouch(View v, MotionEvent event) {
+	            	buttonTouchListener.onTouch(v, event);
+	                mGestureDetector.onTouchEvent(event);
+
+	                return true;
+	            }
+	        };
+	        mNextImageView.setOnTouchListener(buttonTouchListener);
+	        mPrevImageView.setOnTouchListener(buttonTouchListener);
+		}
+		
+		@Override
+		public int getCount() {
+			return mAllImages.getCount();
+		}
+
+		@Override  
+        public Object instantiateItem(View collection, int position) {
+			System.out.println(String.format(" instantiateItem position:%s mCurrentPosition:%s isEmpty():%s", position, mCurrentPosition, mImagePagerItems.isEmpty()));
+			ImageViewTouch image = (ImageViewTouch)getLayoutInflater().inflate(R.layout.view_pager_item, null, false);
+			image.setEnableTrackballScroll(true);
+			image.setOnTouchListener(rootListener);//设置touch事件。本来应该将此touch事件设置在ImagePager中，但是会与ImagePager自身的滑动事件冲突
+            ((ViewPager) collection).addView(image,0);
+            mImagePagerItems.put(position, image);
+
+            if(mImagePagerItems.size() < CACHE_SIZE){//初始化
+            	if(position == mCurrentPosition){
+                	mImageView = image;
+            		setImage(mCurrentPosition, true);
+                }
+            }else{
+            	setImage(mCurrentPosition, true);
+            }
+            
+            return image;
+        }
+
+		@Override
+		public void destroyItem(View collection, int position, Object view) {
+			System.out.println(String.format("destroyItem position: %s", position));
+			ImageViewTouch image = (ImageViewTouch)view;
+			((ViewPager) collection).removeView(image);
+			mImagePagerItems.remove(position);
+			image.setOnTouchListener(null);
+			
+			BitmapDrawable drawable = (BitmapDrawable) image.getDrawable();
+			if(drawable == null) return;
+			image.destroyDrawingCache();
+			Bitmap bitmap = drawable.getBitmap();
+			if (bitmap != null) {
+				mCache.recycle(bitmap);
+			}
+		}
+		 
+		@Override
+		public boolean isViewFromObject(View arg0, Object arg1) {
+			return arg0.equals(arg1);
+		}
+		
+		@Override
+		public int getItemPosition(Object object) {
+			return super.getItemPosition(object);
+		}
+    	
+    }
+    
     // This is the cache for thumbnail bitmaps.
     private BitmapCache mCache;
     private MenuHelper.MenuItemsResult mImageMenuRunnable;
@@ -143,6 +231,8 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         boolean prevIsVisible = mPrevImageView.getVisibility() == View.VISIBLE;
         boolean nextIsVisible = mNextImageView.getVisibility() == View.VISIBLE;
 
+        System.out.println(String.format(" updateNextPrevControls %s %s %s %s", showPrev,showNext, prevIsVisible, nextIsVisible));
+        
         if (showPrev && !prevIsVisible) {
             Animation a = mShowPrevImageViewAnimation;
             a.setDuration(500);
@@ -191,7 +281,6 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
             mPrevImageView.setVisibility(View.INVISIBLE);
         }
 
-        mZoomButtonsController.setVisible(false);
     }
 
     private void showOnScreenControls() {
@@ -210,12 +299,9 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         updateNextPrevControls();
 
         IImage image = mAllImages.getImageAt(mCurrentPosition);
-        if (image instanceof VideoObject) {
-            mZoomButtonsController.setVisible(false);
-        } else {
-            updateZoomButtonsEnabled();
-            mZoomButtonsController.setVisible(true);
-        }
+        if (!(image instanceof VideoObject)) {
+        	updateZoomButtonsEnabled();
+        } 
 
         if (mShowActionIcons
                 && mActionIconPanel.getVisibility() != View.VISIBLE) {
@@ -229,27 +315,14 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
     @Override
     public boolean dispatchTouchEvent(MotionEvent m) {
         if (mPaused) return true;
-        if (mZoomButtonsController.isVisible()) {
-            scheduleDismissOnScreenControls();
-        }
+        scheduleDismissOnScreenControls();
+        
         return super.dispatchTouchEvent(m);
     }
 
     private void updateZoomButtonsEnabled() {
         ImageViewTouch imageView = mImageView;
         float scale = imageView.getScale();
-        mZoomButtonsController.setZoomInEnabled(scale < imageView.mMaxZoom);
-        mZoomButtonsController.setZoomOutEnabled(scale > 1);
-    }
-
-    @Override
-    protected void onDestroy() {
-        // This is necessary to make the ZoomButtonsController unregister
-        // its configuration change receiver.
-        if (mZoomButtonsController != null) {
-            mZoomButtonsController.setVisible(false);
-        }
-        super.onDestroy();
     }
 
     private void scheduleDismissOnScreenControls() {
@@ -264,63 +337,6 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         mNextImageView.setOnClickListener(this);
         mPrevImageView.setOnClickListener(this);
 
-        setupZoomButtonController(ownerView);
-        setupOnTouchListeners(rootView);
-    }
-
-    private void setupZoomButtonController(final View ownerView) {
-        mZoomButtonsController = new ZoomButtonsController(ownerView);
-        mZoomButtonsController.setAutoDismissed(false);
-        mZoomButtonsController.setZoomSpeed(100);
-        mZoomButtonsController.setOnZoomListener(
-                new ZoomButtonsController.OnZoomListener() {
-            public void onVisibilityChanged(boolean visible) {
-                if (visible) {
-                    updateZoomButtonsEnabled();
-                }
-            }
-
-            public void onZoom(boolean zoomIn) {
-                if (zoomIn) {
-                    mImageView.zoomIn();
-                } else {
-                    mImageView.zoomOut();
-                }
-                mZoomButtonsController.setVisible(true);
-                updateZoomButtonsEnabled();
-            }
-        });
-    }
-
-    private void setupOnTouchListeners(View rootView) {
-        mGestureDetector = new GestureDetector(this, new MyGestureListener());
-
-        // If the user touches anywhere on the panel (including the
-        // next/prev button). We show the on-screen controls. In addition
-        // to that, if the touch is not on the prev/next button, we
-        // pass the event to the gesture detector to detect double tap.
-        final OnTouchListener buttonListener = new OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                scheduleDismissOnScreenControls();
-                return false;
-            }
-        };
-
-        OnTouchListener rootListener = new OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                buttonListener.onTouch(v, event);
-                mGestureDetector.onTouchEvent(event);
-
-                // We do not use the return value of
-                // mGestureDetector.onTouchEvent because we will not receive
-                // the "up" event if we return false for the "down" event.
-                return true;
-            }
-        };
-
-        mNextImageView.setOnTouchListener(buttonListener);
-        mPrevImageView.setOnTouchListener(buttonListener);
-        rootView.setOnTouchListener(rootListener);
     }
 
     private class MyGestureListener extends
@@ -349,13 +365,14 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
             if (mPaused) return false;
             showOnScreenControls();
             scheduleDismissOnScreenControls();
-            return true;
+            return false;
         }
 
         @Override
         public boolean onDoubleTap(MotionEvent e) {
             if (mPaused) return false;
             ImageViewTouch imageView = mImageView;
+            System.out.println(String.format("======== onDoubleTap ========", 1));
 
             // Switch between the original scale and 3x scale.
             if (imageView.getScale() > 2F) {
@@ -482,7 +499,6 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 
     void setImage(int pos, boolean showControls) {
         mCurrentPosition = pos;
-
         Bitmap b = mCache.getBitmap(pos);
         if (b != null) {
             IImage image = mAllImages.getImageAt(pos);
@@ -521,7 +537,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
             public void imageLoaded(int pos, int offset, RotateBitmap bitmap,
                                     boolean isThumb) {
                 // shouldn't get here after onPause()
-
+            	
                 // We may get a result from a previous request. Ignore it.
                 if (pos != mCurrentPosition) {
                     bitmap.recycle();
@@ -531,13 +547,11 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
                 if (isThumb) {
                     mCache.put(pos + offset, bitmap.getBitmap());
                 }
-                if (offset == 0) {
-                    // isThumb: We always load thumb bitmap first, so we will
-                    // reset the supp matrix for then thumb bitmap, and keep
-                    // the supp matrix when the full bitmap is loaded.
-                    mImageView.setImageRotateBitmapResetBase(bitmap, isThumb);
-                    updateZoomButtonsEnabled();
-                }
+                
+                ImageViewTouch image = mImagePagerItems.get(pos + offset);
+                System.out.println(String.format("imageLoaded mCurrentPosition:%s pos:%s offset: %s imagetouch:%s", mCurrentPosition, pos, offset, image));
+            	image.setImageRotateBitmapResetBase(bitmap, isThumb);
+                updateZoomButtonsEnabled();
             }
         };
 
@@ -566,13 +580,8 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.viewimage);
 
-        mImageView = (ImageViewTouch) findViewById(R.id.image);
-        mImageView.setEnableTrackballScroll(true);
-        mCache = new BitmapCache(3);
-        mImageView.setRecycler(mCache);
-
-        makeGetter();
-
+        mCache = new BitmapCache(CACHE_SIZE + 1);
+        
         mAnimationIndex = -1;
 
         mSlideShowInAnimation = new Animation[] {
@@ -647,7 +656,40 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
             }
         }
 
-        setupOnScreenControls(findViewById(R.id.rootLayout), mImageView);
+        mImagePager = (ViewPager) findViewById(R.id.image_pager);
+        mImagePager.setOffscreenPageLimit(CACHE_SIZE / 2);
+        mImagePager.setOnPageChangeListener(new OnPageChangeListener() {
+			@Override
+			public void onPageSelected(int arg0) {
+				mCurrentPosition = arg0;
+				System.out.println(String.format(" onPageSelected arg0:%s ", arg0));
+				if(!mImagePagerItems.isEmpty()){
+					mImageView = mImagePagerItems.get(arg0);
+				}
+			}
+			
+			@Override
+			public void onPageScrolled(int arg0, float arg1, int arg2) {
+				
+			}
+			
+			@Override
+			public void onPageScrollStateChanged(int arg0) {
+				
+			}
+		});
+        
+        makeGetter();
+        setupOnScreenControls(findViewById(R.id.rootLayout), mImagePager);
+        //初始化ImagePager适配器
+        mpagerAdapter = new MyPagerAdapter();
+        mProgress = (ProgressBar)findViewById(R.id.progress);
+    }
+    
+    private void hidenOrShowProgress(boolean loading){
+    	if(loading)
+    		mProgress.setVisibility(View.VISIBLE);
+    	else mProgress.setVisibility(View.INVISIBLE);
     }
 
     private void updateActionIcons() {
@@ -935,20 +977,22 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
         } else if (count <= mCurrentPosition) {
             mCurrentPosition = count - 1;
         }
+        mImagePager.setAdapter(mpagerAdapter);
+        mImagePager.setCurrentItem(mCurrentPosition);
 
         if (mGetter == null) {
             makeGetter();
         }
-
+        
         if (mMode == MODE_SLIDESHOW) {
             loadNextImage(mCurrentPosition, 0, true);
         } else {  // MODE_NORMAL
-            setImage(mCurrentPosition, mShowControls);
             mShowControls = false;
         }
+		System.out.println(String.format("set setCurrentItem: %s", mCurrentPosition));
     }
 
-    @Override
+	@Override
     public void onStop() {
         super.onStop();
         mPaused = true;
@@ -1048,6 +1092,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
     private void moveNextOrPrevious(int delta) {
         int nextImagePos = mCurrentPosition + delta;
         if ((0 <= nextImagePos) && (nextImagePos < mAllImages.getCount())) {
+        	mImagePager.setCurrentItem(nextImagePos, true);
             setImage(nextImagePos, true);
             showOnScreenControls();
         }
@@ -1184,7 +1229,6 @@ class ImageViewTouch extends ImageViewTouchBase {
                center(true, true);
            }
         }
-
         return super.onKeyDown(keyCode, event);
     }
 }

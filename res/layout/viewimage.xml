@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2007 The Android Open Source Project
+<!--
+     Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -15,104 +16,119 @@
 -->
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/rootLayout"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <AbsoluteLayout
+        android:id="@+id/slideShowContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent" >
 
-    <AbsoluteLayout android:id="@+id/slideShowContainer"
+        <com.androidesk.camera.ImageViewTouch
+            android:id="@+id/image1_slideShow"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        <com.androidesk.camera.ImageViewTouch android:id="@+id/image1_slideShow"
-                android:background="#00000000"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-        />
-        <com.androidesk.camera.ImageViewTouch android:id="@+id/image2_slideShow"
-                android:background="#00000000"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-        />
+            android:layout_height="match_parent"
+            android:background="#00000000" />
+
+        <com.androidesk.camera.ImageViewTouch
+            android:id="@+id/image2_slideShow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#00000000" />
     </AbsoluteLayout>
 
-    <AbsoluteLayout android:id="@+id/abs"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        <com.androidesk.camera.ImageViewTouch android:id="@+id/image"
-                    android:background="#FF000000"
-                    android:focusableInTouchMode="true"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-    </AbsoluteLayout>
-    <ImageView android:id="@+id/prev_image"
-            android:clickable="true"
-            android:focusable="false"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_centerVertical="true"
-            android:visibility="invisible"
-            android:src="@drawable/btn_camera_arrow_left"
-    />
+    <AbsoluteLayout
+        android:id="@+id/abs"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
 
-    <ImageView android:id="@+id/next_image"
-            android:clickable="true"
-            android:focusable="false"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:visibility="invisible"
-            android:src="@drawable/btn_camera_arrow_right"
-    />
+        <android.support.v4.view.ViewPager
+            android:id="@+id/image_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FF000000"
+            android:focusableInTouchMode="true" >
+        </android.support.v4.view.ViewPager>
+    </AbsoluteLayout>
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
+
+    <ImageView
+        android:id="@+id/prev_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:clickable="true"
+        android:focusable="false"
+        android:src="@drawable/btn_camera_arrow_left"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:id="@+id/next_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:clickable="true"
+        android:focusable="false"
+        android:src="@drawable/btn_camera_arrow_right"
+        android:visibility="invisible" />
 
     <com.androidesk.camera.EvenlySpacedLayout
-            android:visibility="gone"
-            android:id="@+id/action_icon_panel"
-            android:layout_marginTop="20dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        <com.androidesk.camera.ActionMenuButton
-                android:id="@+id/setas"
-                android:visibility="gone"
-                android:drawableTop="@drawable/ic_menu_set_as"
-                android:text="@string/camera_set"
-                style="@style/OnscreenActionIcon"
-        />
-        <com.androidesk.camera.ActionMenuButton
-                android:id="@+id/play"
-                android:visibility="gone"
-                android:drawableTop="@drawable/ic_menu_camera_play"
-                android:text="@string/camera_play"
-                style="@style/OnscreenActionIcon"
-        />
-        <com.androidesk.camera.ActionMenuButton
-                android:id="@+id/share"
-                android:visibility="gone"
-                android:drawableTop="@drawable/ic_menu_share"
-                android:text="@string/camera_share"
-                style="@style/OnscreenActionIcon"
-        />
-        <com.androidesk.camera.ActionMenuButton
-                android:id="@+id/discard"
-                android:visibility="gone"
-                android:drawableTop="@drawable/ic_menu_delete"
-                android:text="@string/camera_toss"
-                style="@style/OnscreenActionIcon"
-        />
-        <com.androidesk.camera.ActionMenuButton
-                android:id="@+id/attach"
-                android:visibility="gone"
-                android:drawableTop="@drawable/ic_menu_attach"
-                android:text="@string/camera_attach"
-                style="@style/OnscreenActionIcon"
-        />
-        <com.androidesk.camera.ActionMenuButton
-                android:id="@+id/cancel"
-                android:visibility="gone"
-                android:drawableTop="@drawable/ic_menu_cancel"
-                android:text="@string/camera_cancel"
-                style="@style/OnscreenActionIcon"
-        />
-    </com.androidesk.camera.EvenlySpacedLayout>
-</RelativeLayout>
+        android:id="@+id/action_icon_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:visibility="gone" >
 
+        <com.androidesk.camera.ActionMenuButton
+            android:id="@+id/setas"
+            style="@style/OnscreenActionIcon"
+            android:drawableTop="@drawable/ic_menu_set_as"
+            android:text="@string/camera_set"
+            android:visibility="gone" />
+
+        <com.androidesk.camera.ActionMenuButton
+            android:id="@+id/play"
+            style="@style/OnscreenActionIcon"
+            android:drawableTop="@drawable/ic_menu_camera_play"
+            android:text="@string/camera_play"
+            android:visibility="gone" />
+
+        <com.androidesk.camera.ActionMenuButton
+            android:id="@+id/share"
+            style="@style/OnscreenActionIcon"
+            android:drawableTop="@drawable/ic_menu_share"
+            android:text="@string/camera_share"
+            android:visibility="gone" />
+
+        <com.androidesk.camera.ActionMenuButton
+            android:id="@+id/discard"
+            style="@style/OnscreenActionIcon"
+            android:drawableTop="@drawable/ic_menu_delete"
+            android:text="@string/camera_toss"
+            android:visibility="gone" />
+
+        <com.androidesk.camera.ActionMenuButton
+            android:id="@+id/attach"
+            style="@style/OnscreenActionIcon"
+            android:drawableTop="@drawable/ic_menu_attach"
+            android:text="@string/camera_attach"
+            android:visibility="gone" />
+
+        <com.androidesk.camera.ActionMenuButton
+            android:id="@+id/cancel"
+            style="@style/OnscreenActionIcon"
+            android:drawableTop="@drawable/ic_menu_cancel"
+            android:text="@string/camera_cancel"
+            android:visibility="gone" />
+    </com.androidesk.camera.EvenlySpacedLayout>
+
+</RelativeLayout>

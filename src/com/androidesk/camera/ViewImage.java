@@ -111,9 +111,9 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	// The image view displayed for normal mode.
 	private ImageViewTouch mImageView;
 	private MyViewPager mImagePager;
-	private final int CACHE_SIZE = 3;
+	private final int CACHE_SIZE_MAX = 3;
 	private final HashMap<Integer, ImageViewTouch> mImagePagerItems = new LinkedHashMap<Integer, ImageViewTouch>(
-			CACHE_SIZE);
+			CACHE_SIZE_MAX);
 	private ProgressBar mProgress;
 	private MyPagerAdapter mpagerAdapter;
 
@@ -155,15 +155,12 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 			image.setEnableTrackballScroll(true);
 			image.setOnTouchListener(rootListener);// 设置touch事件。本来应该将此touch事件设置在ImagePager中，但是会与ImagePager自身的滑动事件冲突
 			((MyViewPager)collection).addView(image, 0);
-			mImagePagerItems.put(position, image);
 
-			if (mImagePagerItems.size() < CACHE_SIZE) {// 初始化
-				if (position == mCurrentPosition) {
-					mImageView = image;
-				}
+			if (mImagePagerItems.isEmpty()) {// 初始化状态，初始化mImageView
+				mImageView = image;
+				setImage(mCurrentPosition, true);
 			}
-			setImage(mCurrentPosition, true);
-
+			mImagePagerItems.put(position, image);
 			return image;
 		}
 
@@ -512,7 +509,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 				}
 
 				ImageViewTouch image = mImagePagerItems.get(pos + offset);
-				image.setImageRotateBitmapResetBase(bitmap, isThumb);
+				if(image != null) image.setImageRotateBitmapResetBase(bitmap, isThumb);
 				if (offset == 0)
 					hidenOrShowProgress(false);
 			}
@@ -542,8 +539,8 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.viewimage);
 
-		// 实践表明，缓存的数量是控件缓存数量+2时，不会出现 use recycled bitmap 错误,具体原因还有待分析
-		mCache = new BitmapCache(CACHE_SIZE + 2);
+		//TODO 实践表明，缓存的数量是控件缓存数量+2时，不会出现 use recycled bitmap 错误,具体原因还有待分析
+		mCache = new BitmapCache(CACHE_SIZE_MAX + 2);
 
 		mAnimationIndex = -1;
 
@@ -609,13 +606,16 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 		}
 
 		mImagePager = (MyViewPager)findViewById(R.id.image_pager);
-		mImagePager.setOffscreenPageLimit(CACHE_SIZE / 2);
+		mImagePager.setOffscreenPageLimit(CACHE_SIZE_MAX / 2);
 		mImagePager.setOnPageChangeListener(new OnPageChangeListener() {
 			@Override
 			public void onPageSelected(int arg0) {
 				mCurrentPosition = arg0;
-				if (!mImagePagerItems.isEmpty()) {
-					mImageView = mImagePagerItems.get(arg0);
+				
+				//非初始化状态下，滑动后，需要更新mImageView 与ImageViewAdapter的instantiateItem方法中的mImageView初始化正好相反
+				if(!mImagePagerItems.isEmpty()){
+					mImageView = mImagePagerItems.get(mCurrentPosition);
+					setImage(mCurrentPosition, true);
 				}
 				updateNextPrevControls();
 			}
@@ -713,6 +713,13 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 					"pref_gallery_slideshow_transition_key", 0);
 			mSlideShowInterval = getPreferencesInteger(mPrefs,
 					"pref_gallery_slideshow_interval_key", 3) * 1000;
+			slideshowPanel.setOnTouchListener(new OnTouchListener() {
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					setMode(MODE_NORMAL);
+					return false;
+				}
+			});
 		} else {
 			slideshowPanel.setVisibility(View.GONE);
 			normalPanel.setVisibility(View.VISIBLE);
@@ -1029,6 +1036,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 		int nextImagePos = mCurrentPosition + delta;
 		if ((0 <= nextImagePos) && (nextImagePos < mAllImages.getCount())) {
 			mImagePager.setCurrentItem(nextImagePos, true);
+			mImagePager.intercept = true;
 			setImage(nextImagePos, true);
 			showOnScreenControls();
 		}

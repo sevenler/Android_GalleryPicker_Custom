@@ -25,49 +25,48 @@ import android.os.Bundle;
  * standard pick action.
  */
 public class Wallpaper extends NoSearchActivity {
-    @SuppressWarnings("unused")
-    private static final String TAG = "Wallpaper";
-    private static final int PHOTO_PICKED = 1;
-    private static final int CROP_DONE = 2;
+	@SuppressWarnings("unused")
+	private static final String TAG = "Wallpaper";
+	private static final int PHOTO_PICKED = 1;
+	private static final int CROP_DONE = 2;
 
-    @Override
-    protected void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
+	@Override
+	protected void onCreate(Bundle icicle) {
+		super.onCreate(icicle);
 
-        Uri imageToUse = getIntent().getData();
-        if (imageToUse != null) {
-            Intent intent = new Intent();
-            intent.setClass(this, CropImage.class);
-            intent.setData(imageToUse);
-            formatIntent(intent);
-            startActivityForResult(intent, CROP_DONE);
-        } else {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT, null);
-            intent.setType("image/*");
-            intent.putExtra("crop", "true");
-            formatIntent(intent);
-            startActivityForResult(intent, PHOTO_PICKED);
-        }
-    }
+		Uri imageToUse = getIntent().getData();
+		if (imageToUse != null) {
+			Intent intent = new Intent();
+			intent.setClass(this, CropImage.class);
+			intent.setData(imageToUse);
+			formatIntent(intent);
+			startActivityForResult(intent, CROP_DONE);
+		} else {
+			Intent intent = new Intent(Intent.ACTION_GET_CONTENT, null);
+			intent.setType("image/*");
+			intent.putExtra("crop", "true");
+			formatIntent(intent);
+			startActivityForResult(intent, PHOTO_PICKED);
+		}
+	}
 
-    protected void formatIntent(Intent intent) {
-        int width = getWallpaperDesiredMinimumWidth();
-        int height = getWallpaperDesiredMinimumHeight();
-        intent.putExtra("outputX",         width);
-        intent.putExtra("outputY",         height);
-        intent.putExtra("aspectX",         width);
-        intent.putExtra("aspectY",         height);
-        intent.putExtra("scale",           true);
-        intent.putExtra("noFaceDetection", true);
-        intent.putExtra("setWallpaper",    true);
-    }
+	protected void formatIntent(Intent intent) {
+		int width = getWallpaperDesiredMinimumWidth();
+		int height = getWallpaperDesiredMinimumHeight();
+		intent.putExtra("outputX", width);
+		intent.putExtra("outputY", height);
+		intent.putExtra("aspectX", width);
+		intent.putExtra("aspectY", height);
+		intent.putExtra("scale", true);
+		intent.putExtra("noFaceDetection", true);
+		intent.putExtra("setWallpaper", true);
+	}
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
-        if ((requestCode == PHOTO_PICKED || requestCode == CROP_DONE)) {
-            setResult(resultCode);
-            finish();
-        }
-    }
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if ((requestCode == PHOTO_PICKED || requestCode == CROP_DONE)) {
+			setResult(resultCode);
+			finish();
+		}
+	}
 }

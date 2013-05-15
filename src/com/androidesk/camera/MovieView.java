@@ -16,81 +16,79 @@
 
 package com.androidesk.camera;
 
-import com.androidesk.gallery.R;
-
-
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
+
+import com.androidesk.gallery.R;
 
 /**
  * This activity plays a video from a specified URI.
  */
-public class MovieView extends NoSearchActivity  {
-    private static final String TAG = "MovieView";
+public class MovieView extends NoSearchActivity {
+	private static final String TAG = "MovieView";
 
-    private MovieViewControl mControl;
-    private boolean mFinishOnCompletion;
-    private boolean mResumed = false;  // Whether this activity has been resumed.
-    private boolean mFocused = false;  // Whether this window has focus.
-    private boolean mControlResumed = false;  // Whether the MovieViewControl is resumed.
+	private MovieViewControl mControl;
+	private boolean mFinishOnCompletion;
+	private boolean mResumed = false; // Whether this activity has been resumed.
+	private boolean mFocused = false; // Whether this window has focus.
+	private boolean mControlResumed = false; // Whether the MovieViewControl is
+												// resumed.
 
-    @Override
-    public void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
-        setContentView(R.layout.movie_view);
-        View rootView = findViewById(R.id.root);
-        Intent intent = getIntent();
-        mControl = new MovieViewControl(rootView, this, intent.getData()) {
-            @Override
-            public void onCompletion() {
-                if (mFinishOnCompletion) {
-                    finish();
-                }
-            }
-        };
-        if (intent.hasExtra(MediaStore.EXTRA_SCREEN_ORIENTATION)) {
-            int orientation = intent.getIntExtra(
-                    MediaStore.EXTRA_SCREEN_ORIENTATION,
-                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-            if (orientation != getRequestedOrientation()) {
-                setRequestedOrientation(orientation);
-            }
-        }
-        mFinishOnCompletion = intent.getBooleanExtra(
-                MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
-    }
+	@Override
+	public void onCreate(Bundle icicle) {
+		super.onCreate(icicle);
+		setContentView(R.layout.movie_view);
+		View rootView = findViewById(R.id.root);
+		Intent intent = getIntent();
+		mControl = new MovieViewControl(rootView, this, intent.getData()) {
+			@Override
+			public void onCompletion() {
+				if (mFinishOnCompletion) {
+					finish();
+				}
+			}
+		};
+		if (intent.hasExtra(MediaStore.EXTRA_SCREEN_ORIENTATION)) {
+			int orientation = intent.getIntExtra(
+					MediaStore.EXTRA_SCREEN_ORIENTATION,
+					ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+			if (orientation != getRequestedOrientation()) {
+				setRequestedOrientation(orientation);
+			}
+		}
+		mFinishOnCompletion = intent.getBooleanExtra(
+				MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
+	}
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        mResumed = false;
-        if (mControlResumed) {
-            mControl.onPause();
-            mControlResumed = false;
-        }
-    }
+	@Override
+	public void onPause() {
+		super.onPause();
+		mResumed = false;
+		if (mControlResumed) {
+			mControl.onPause();
+			mControlResumed = false;
+		}
+	}
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        mResumed = true;
-        if (mFocused && mResumed && !mControlResumed) {
-            mControl.onResume();
-            mControlResumed = true;
-        }
-    }
+	@Override
+	public void onResume() {
+		super.onResume();
+		mResumed = true;
+		if (mFocused && mResumed && !mControlResumed) {
+			mControl.onResume();
+			mControlResumed = true;
+		}
+	}
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        mFocused = hasFocus;
-        if (mFocused && mResumed && !mControlResumed) {
-            mControl.onResume();
-            mControlResumed = true;
-        }
-    }
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		mFocused = hasFocus;
+		if (mFocused && mResumed && !mControlResumed) {
+			mControl.onResume();
+			mControlResumed = true;
+		}
+	}
 }

@@ -22,6 +22,7 @@
     <application
         android:icon="@drawable/indicator_autocrop"
         android:label="@string/camera_label"
+        android:theme="@style/AppTheme"
         android:taskAffinity="" >
         <activity
             android:name="com.androidesk.camera.GalleryPicker"

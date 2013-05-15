@@ -60,1284 +60,1237 @@ import com.androidesk.gallery.R;
 // button to see the previous or next image. In slide show mode it shows one
 // image after another, with some transition effect.
 public class ViewImage extends NoSearchActivity implements View.OnClickListener {
-    private static final String PREF_SLIDESHOW_REPEAT =
-            "pref_gallery_slideshow_repeat_key";
-    private static final String PREF_SHUFFLE_SLIDESHOW =
-            "pref_gallery_slideshow_shuffle_key";
-    private static final String STATE_URI = "uri";
-    private static final String STATE_SLIDESHOW = "slideshow";
-    private static final String EXTRA_SLIDESHOW = "slideshow";
-    private static final String TAG = "ViewImage";
+	private static final String PREF_SLIDESHOW_REPEAT = "pref_gallery_slideshow_repeat_key";
+	private static final String PREF_SHUFFLE_SLIDESHOW = "pref_gallery_slideshow_shuffle_key";
+	private static final String STATE_URI = "uri";
+	private static final String STATE_SLIDESHOW = "slideshow";
+	private static final String EXTRA_SLIDESHOW = "slideshow";
+	private static final String TAG = "ViewImage";
+	private ImageGetter mGetter;
+	private Uri mSavedUri;
+	boolean mPaused = true;
 
-    private ImageGetter mGetter;
-    private Uri mSavedUri;
-    boolean mPaused = true;
-    private boolean mShowControls = true;
+	// Choices for what adjacents to load.
+	private static final int[] sOrderAdjacents = new int[] { 0, 1, -1 };
+	private static final int[] sOrderSlideshow = new int[] { 0 };
 
-    // Choices for what adjacents to load.
-    private static final int[] sOrderAdjacents = new int[] {0, 1, -1};
-    private static final int[] sOrderSlideshow = new int[] {0};
+	final GetterHandler mHandler = new GetterHandler();
+	private final Random mRandom = new Random(System.currentTimeMillis());
+	private int[] mShuffleOrder = null;
+	private boolean mUseShuffleOrder = false;
+	private boolean mSlideShowLoop = false;
+	static final int MODE_NORMAL = 1;
+	static final int MODE_SLIDESHOW = 2;
+	private int mMode = MODE_NORMAL;
+	private boolean mFullScreenInNormalMode;
+	private boolean mShowActionIcons;
+	private View mActionIconPanel;
+	private int mSlideShowInterval;
+	private int mLastSlideShowImage;
+	int mCurrentPosition = 0;
 
-    final GetterHandler mHandler = new GetterHandler();
+	// represents which style animation to use
+	private int mAnimationIndex;
+	private Animation[] mSlideShowInAnimation;
+	private Animation[] mSlideShowOutAnimation;
+	private SharedPreferences mPrefs;
 
-    private final Random mRandom = new Random(System.currentTimeMillis());
-    private int [] mShuffleOrder = null;
-    private boolean mUseShuffleOrder = false;
-    private boolean mSlideShowLoop = false;
+	private View mNextImageView;
+	private View mPrevImageView;
+	private final Animation mHideNextImageViewAnimation = new AlphaAnimation(1F, 0F);
+	private final Animation mHidePrevImageViewAnimation = new AlphaAnimation(1F, 0F);
+	private final Animation mShowNextImageViewAnimation = new AlphaAnimation(0F, 1F);
+	private final Animation mShowPrevImageViewAnimation = new AlphaAnimation(0F, 1F);
 
-    static final int MODE_NORMAL = 1;
-    static final int MODE_SLIDESHOW = 2;
-    private int mMode = MODE_NORMAL;
+	public static final String KEY_IMAGE_LIST = "image_list";
+	IImageList mAllImages;
+	private ImageManager.ImageListParam mParam;
+	private int mSlideShowImageCurrent = 0;
+	private final ImageViewTouchBase[] mSlideShowImageViews = new ImageViewTouchBase[2];
 
-    private boolean mFullScreenInNormalMode;
-    private boolean mShowActionIcons;
-    private View mActionIconPanel;
+	// The image view displayed for normal mode.
+	private ImageViewTouch mImageView;
+	private MyViewPager mImagePager;
+	private final int CACHE_SIZE = 3;
+	private final HashMap<Integer, ImageViewTouch> mImagePagerItems = new LinkedHashMap<Integer, ImageViewTouch>(
+			CACHE_SIZE);
+	private ProgressBar mProgress;
+	private MyPagerAdapter mpagerAdapter;
 
-    private int mSlideShowInterval;
-    private int mLastSlideShowImage;
-    int mCurrentPosition = 0;
-
-    // represents which style animation to use
-    private int mAnimationIndex;
-    private Animation [] mSlideShowInAnimation;
-    private Animation [] mSlideShowOutAnimation;
-
-    private SharedPreferences mPrefs;
-
-    private View mNextImageView;
-    private View mPrevImageView;
-    private final Animation mHideNextImageViewAnimation =
-            new AlphaAnimation(1F, 0F);
-    private final Animation mHidePrevImageViewAnimation =
-            new AlphaAnimation(1F, 0F);
-    private final Animation mShowNextImageViewAnimation =
-            new AlphaAnimation(0F, 1F);
-    private final Animation mShowPrevImageViewAnimation =
-            new AlphaAnimation(0F, 1F);
-
-    public static final String KEY_IMAGE_LIST = "image_list";
-    private static final String STATE_SHOW_CONTROLS = "show_controls";
-
-    IImageList mAllImages;
-
-    private ImageManager.ImageListParam mParam;
-
-    private int mSlideShowImageCurrent = 0;
-    private final ImageViewTouchBase [] mSlideShowImageViews =
-            new ImageViewTouchBase[2];
-
-    // The image view displayed for normal mode.
-    private ImageViewTouch mImageView;
-    private ViewPager mImagePager;
-    private final int CACHE_SIZE = 3;
-    private final HashMap<Integer, ImageViewTouch> mImagePagerItems = new LinkedHashMap<Integer, ImageViewTouch>(CACHE_SIZE);
-    private ProgressBar mProgress;
-    
-    private MyPagerAdapter mpagerAdapter;
-    class MyPagerAdapter extends PagerAdapter{
-    	private GestureDetector mGestureDetector;
+	class MyPagerAdapter extends PagerAdapter {
+		private GestureDetector mGestureDetector;
 		private OnTouchListener rootListener;
-		
+
 		public MyPagerAdapter() {
 			super();
-			
+
 			this.mGestureDetector = new GestureDetector(ViewImage.this, new MyGestureListener());
 			final OnTouchListener buttonTouchListener = new OnTouchListener() {
-	            public boolean onTouch(View v, MotionEvent event) {
-	                scheduleDismissOnScreenControls();
-	                return false;
-	            }
-	        };
-	        rootListener = new OnTouchListener() {
-	            public boolean onTouch(View v, MotionEvent event) {
-	            	buttonTouchListener.onTouch(v, event);
-	                mGestureDetector.onTouchEvent(event);
+				public boolean onTouch(View v, MotionEvent event) {
+					scheduleDismissOnScreenControls();
+					return false;
+				}
+			};
+			rootListener = new OnTouchListener() {
+				public boolean onTouch(View v, MotionEvent event) {
+					buttonTouchListener.onTouch(v, event);
+					mGestureDetector.onTouchEvent(event);
 
-	                return true;
-	            }
-	        };
-	        mNextImageView.setOnTouchListener(buttonTouchListener);
-	        mPrevImageView.setOnTouchListener(buttonTouchListener);
+					return true;
+				}
+			};
+			mNextImageView.setOnTouchListener(buttonTouchListener);
+			mPrevImageView.setOnTouchListener(buttonTouchListener);
 		}
-		
+
 		@Override
 		public int getCount() {
 			return mAllImages.getCount();
 		}
 
-		@Override  
-        public Object instantiateItem(View collection, int position) {
-			System.out.println(String.format(" instantiateItem position:%s mCurrentPosition:%s isEmpty():%s", position, mCurrentPosition, mImagePagerItems.isEmpty()));
-			ImageViewTouch image = (ImageViewTouch)getLayoutInflater().inflate(R.layout.view_pager_item, null, false);
+		@Override
+		public Object instantiateItem(View collection, int position) {
+			ImageViewTouch image = (ImageViewTouch)getLayoutInflater().inflate(
+					R.layout.view_pager_item, null, false);
 			image.setEnableTrackballScroll(true);
-			image.setOnTouchListener(rootListener);//设置touch事件。本来应该将此touch事件设置在ImagePager中，但是会与ImagePager自身的滑动事件冲突
-            ((ViewPager) collection).addView(image,0);
-            mImagePagerItems.put(position, image);
+			image.setOnTouchListener(rootListener);// 设置touch事件。本来应该将此touch事件设置在ImagePager中，但是会与ImagePager自身的滑动事件冲突
+			((MyViewPager)collection).addView(image, 0);
+			mImagePagerItems.put(position, image);
 
-            if(mImagePagerItems.size() < CACHE_SIZE){//初始化
-            	if(position == mCurrentPosition){
-                	mImageView = image;
-            		setImage(mCurrentPosition, true);
-                }
-            }else{
-            	setImage(mCurrentPosition, true);
-            }
-            
-            return image;
-        }
+			if (mImagePagerItems.size() < CACHE_SIZE) {// 初始化
+				if (position == mCurrentPosition) {
+					mImageView = image;
+				}
+			}
+			setImage(mCurrentPosition, true);
+
+			return image;
+		}
 
 		@Override
 		public void destroyItem(View collection, int position, Object view) {
-			System.out.println(String.format("destroyItem position: %s", position));
 			ImageViewTouch image = (ImageViewTouch)view;
-			((ViewPager) collection).removeView(image);
+			((MyViewPager)collection).removeView(image);
 			mImagePagerItems.remove(position);
 			image.setOnTouchListener(null);
-			
-			BitmapDrawable drawable = (BitmapDrawable) image.getDrawable();
-			if(drawable == null) return;
+
+			BitmapDrawable drawable = (BitmapDrawable)image.getDrawable();
+			if (drawable == null)
+				return;
 			image.destroyDrawingCache();
 			Bitmap bitmap = drawable.getBitmap();
 			if (bitmap != null) {
 				mCache.recycle(bitmap);
 			}
 		}
-		 
+
 		@Override
 		public boolean isViewFromObject(View arg0, Object arg1) {
 			return arg0.equals(arg1);
 		}
-		
+
 		@Override
 		public int getItemPosition(Object object) {
 			return super.getItemPosition(object);
 		}
-    	
-    }
-    
-    // This is the cache for thumbnail bitmaps.
-    private BitmapCache mCache;
-    private MenuHelper.MenuItemsResult mImageMenuRunnable;
-    private final Runnable mDismissOnScreenControlRunner = new Runnable() {
-        public void run() {
-            hideOnScreenControls();
-        }
-    };
-
-    private void updateNextPrevControls() {
-        boolean showPrev = mCurrentPosition > 0;
-        boolean showNext = mCurrentPosition < mAllImages.getCount() - 1;
-
-        boolean prevIsVisible = mPrevImageView.getVisibility() == View.VISIBLE;
-        boolean nextIsVisible = mNextImageView.getVisibility() == View.VISIBLE;
-
-        System.out.println(String.format(" updateNextPrevControls %s %s %s %s", showPrev,showNext, prevIsVisible, nextIsVisible));
-        
-        if (showPrev && !prevIsVisible) {
-            Animation a = mShowPrevImageViewAnimation;
-            a.setDuration(500);
-            mPrevImageView.startAnimation(a);
-            mPrevImageView.setVisibility(View.VISIBLE);
-        } else if (!showPrev && prevIsVisible) {
-            Animation a = mHidePrevImageViewAnimation;
-            a.setDuration(500);
-            mPrevImageView.startAnimation(a);
-            mPrevImageView.setVisibility(View.GONE);
-        }
-
-        if (showNext && !nextIsVisible) {
-            Animation a = mShowNextImageViewAnimation;
-            a.setDuration(500);
-            mNextImageView.startAnimation(a);
-            mNextImageView.setVisibility(View.VISIBLE);
-        } else if (!showNext && nextIsVisible) {
-            Animation a = mHideNextImageViewAnimation;
-            a.setDuration(500);
-            mNextImageView.startAnimation(a);
-            mNextImageView.setVisibility(View.GONE);
-        }
-    }
-
-    private void hideOnScreenControls() {
-        if (mShowActionIcons
-                && mActionIconPanel.getVisibility() == View.VISIBLE) {
-            Animation animation = new AlphaAnimation(1, 0);
-            animation.setDuration(500);
-            mActionIconPanel.startAnimation(animation);
-            mActionIconPanel.setVisibility(View.INVISIBLE);
-        }
-
-        if (mNextImageView.getVisibility() == View.VISIBLE) {
-            Animation a = mHideNextImageViewAnimation;
-            a.setDuration(500);
-            mNextImageView.startAnimation(a);
-            mNextImageView.setVisibility(View.INVISIBLE);
-        }
-
-        if (mPrevImageView.getVisibility() == View.VISIBLE) {
-            Animation a = mHidePrevImageViewAnimation;
-            a.setDuration(500);
-            mPrevImageView.startAnimation(a);
-            mPrevImageView.setVisibility(View.INVISIBLE);
-        }
-
-    }
-
-    private void showOnScreenControls() {
-        if (mPaused) return;
-        // If the view has not been attached to the window yet, the
-        // zoomButtonControls will not able to show up. So delay it until the
-        // view has attached to window.
-        if (mActionIconPanel.getWindowToken() == null) {
-            mHandler.postGetterCallback(new Runnable() {
-                public void run() {
-                    showOnScreenControls();
-                }
-            });
-            return;
-        }
-        updateNextPrevControls();
-
-        IImage image = mAllImages.getImageAt(mCurrentPosition);
-        if (!(image instanceof VideoObject)) {
-        	updateZoomButtonsEnabled();
-        } 
-
-        if (mShowActionIcons
-                && mActionIconPanel.getVisibility() != View.VISIBLE) {
-            Animation animation = new AlphaAnimation(0, 1);
-            animation.setDuration(500);
-            mActionIconPanel.startAnimation(animation);
-            mActionIconPanel.setVisibility(View.VISIBLE);
-        }
-    }
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent m) {
-        if (mPaused) return true;
-        scheduleDismissOnScreenControls();
-        
-        return super.dispatchTouchEvent(m);
-    }
-
-    private void updateZoomButtonsEnabled() {
-        ImageViewTouch imageView = mImageView;
-        float scale = imageView.getScale();
-    }
-
-    private void scheduleDismissOnScreenControls() {
-        mHandler.removeCallbacks(mDismissOnScreenControlRunner);
-        mHandler.postDelayed(mDismissOnScreenControlRunner, 2000);
-    }
-
-    private void setupOnScreenControls(View rootView, View ownerView) {
-        mNextImageView = rootView.findViewById(R.id.next_image);
-        mPrevImageView = rootView.findViewById(R.id.prev_image);
-
-        mNextImageView.setOnClickListener(this);
-        mPrevImageView.setOnClickListener(this);
-
-    }
-
-    private class MyGestureListener extends
-            GestureDetector.SimpleOnGestureListener {
-
-        @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2,
-                float distanceX, float distanceY) {
-            if (mPaused) return false;
-            ImageViewTouch imageView = mImageView;
-            if (imageView.getScale() > 1F) {
-                imageView.postTranslateCenter(-distanceX, -distanceY);
-            }
-            return true;
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            if (mPaused) return false;
-            setMode(MODE_NORMAL);
-            return true;
-        }
-
-        @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-            if (mPaused) return false;
-            showOnScreenControls();
-            scheduleDismissOnScreenControls();
-            return false;
-        }
-
-        @Override
-        public boolean onDoubleTap(MotionEvent e) {
-            if (mPaused) return false;
-            ImageViewTouch imageView = mImageView;
-            System.out.println(String.format("======== onDoubleTap ========", 1));
-
-            // Switch between the original scale and 3x scale.
-            if (imageView.getScale() > 2F) {
-                mImageView.zoomTo(1f);
-            } else {
-                mImageView.zoomToPoint(3f, e.getX(), e.getY());
-            }
-            return true;
-        }
-    }
-
-    boolean isPickIntent() {
-        String action = getIntent().getAction();
-        return (Intent.ACTION_PICK.equals(action)
-                || Intent.ACTION_GET_CONTENT.equals(action));
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-
-        MenuItem item = menu.add(Menu.NONE, Menu.NONE,
-                MenuHelper.POSITION_SLIDESHOW,
-                R.string.slide_show);
-        item.setOnMenuItemClickListener(
-                new MenuItem.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                setMode(MODE_SLIDESHOW);
-                mLastSlideShowImage = mCurrentPosition;
-                loadNextImage(mCurrentPosition, 0, true);
-                return true;
-            }
-        });
-        item.setIcon(android.R.drawable.ic_menu_slideshow);
-
-        mImageMenuRunnable = MenuHelper.addImageMenuItems(
-                menu,
-                MenuHelper.INCLUDE_ALL,
-                ViewImage.this,
-                mHandler,
-                mDeletePhotoRunnable,
-                new MenuHelper.MenuInvoker() {
-                    public void run(final MenuHelper.MenuCallback cb) {
-                        if (mPaused) return;
-                        setMode(MODE_NORMAL);
-
-                        IImage image = mAllImages.getImageAt(mCurrentPosition);
-                        Uri uri = image.fullSizeImageUri();
-                        cb.run(uri, image);
-
-                        // We might have deleted all images in the callback, so
-                        // call setImage() only if we still have some images.
-                        if (mAllImages.getCount() > 0) {
-                            mImageView.clear();
-                            setImage(mCurrentPosition, false);
-                        }
-                    }
-                });
-
-        item = menu.add(Menu.NONE, Menu.NONE,
-                MenuHelper.POSITION_GALLERY_SETTING, R.string.camerasettings);
-        item.setOnMenuItemClickListener(
-                new MenuItem.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                Intent preferences = new Intent();
-                preferences.setClass(ViewImage.this, GallerySettings.class);
-                startActivity(preferences);
-                return true;
-            }
-        });
-        item.setAlphabeticShortcut('p');
-        item.setIcon(android.R.drawable.ic_menu_preferences);
-
-        return true;
-    }
-
-    protected Runnable mDeletePhotoRunnable = new Runnable() {
-        public void run() {
-            mAllImages.removeImageAt(mCurrentPosition);
-            if (mAllImages.getCount() == 0) {
-                finish();
-                return;
-            } else {
-                if (mCurrentPosition == mAllImages.getCount()) {
-                    mCurrentPosition -= 1;
-                }
-            }
-            mImageView.clear();
-            mCache.clear();  // Because the position number is changed.
-            setImage(mCurrentPosition, true);
-        }
-    };
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-
-        super.onPrepareOptionsMenu(menu);
-        if (mPaused) return false;
-
-        setMode(MODE_NORMAL);
-        IImage image = mAllImages.getImageAt(mCurrentPosition);
-
-        if (mImageMenuRunnable != null) {
-            mImageMenuRunnable.gettingReadyToOpen(menu, image);
-        }
-
-        Uri uri = mAllImages.getImageAt(mCurrentPosition).fullSizeImageUri();
-        MenuHelper.enableShareMenuItem(menu, MenuHelper.isWhiteListUri(uri));
-
-        MenuHelper.enableShowOnMapMenuItem(menu, MenuHelper.hasLatLngData(image));
-
-        return true;
-    }
-
-    @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        boolean b = super.onMenuItemSelected(featureId, item);
-        if (mImageMenuRunnable != null) {
-            mImageMenuRunnable.aboutToCall(item,
-                    mAllImages.getImageAt(mCurrentPosition));
-        }
-        return b;
-    }
-
-    void setImage(int pos, boolean showControls) {
-        mCurrentPosition = pos;
-        Bitmap b = mCache.getBitmap(pos);
-        if (b != null) {
-            IImage image = mAllImages.getImageAt(pos);
-            mImageView.setImageRotateBitmapResetBase(
-                    new RotateBitmap(b, image.getDegreesRotated()), true);
-            updateZoomButtonsEnabled();
-        }
-
-        ImageGetterCallback cb = new ImageGetterCallback() {
-            public void completed() {
-            }
-
-            public boolean wantsThumbnail(int pos, int offset) {
-                return !mCache.hasBitmap(pos + offset);
-            }
-
-            public boolean wantsFullImage(int pos, int offset) {
-                return offset == 0;
-            }
-
-            public int fullImageSizeToUse(int pos, int offset) {
-                // this number should be bigger so that we can zoom.  we may
-                // need to get fancier and read in the fuller size image as the
-                // user starts to zoom.
-                // Originally the value is set to 480 in order to avoid OOM.
-                // Now we set it to 2048 because of using
-                // native memory allocation for Bitmaps.
-                final int imageViewSize = 2048;
-                return imageViewSize;
-            }
-
-            public int [] loadOrder() {
-                return sOrderAdjacents;
-            }
-
-            public void imageLoaded(int pos, int offset, RotateBitmap bitmap,
-                                    boolean isThumb) {
-                // shouldn't get here after onPause()
-            	
-                // We may get a result from a previous request. Ignore it.
-                if (pos != mCurrentPosition) {
-                    bitmap.recycle();
-                    return;
-                }
-
-                if (isThumb) {
-                    mCache.put(pos + offset, bitmap.getBitmap());
-                }
-                
-                ImageViewTouch image = mImagePagerItems.get(pos + offset);
-                System.out.println(String.format("imageLoaded mCurrentPosition:%s pos:%s offset: %s imagetouch:%s", mCurrentPosition, pos, offset, image));
-            	image.setImageRotateBitmapResetBase(bitmap, isThumb);
-                updateZoomButtonsEnabled();
-            }
-        };
-
-        // Could be null if we're stopping a slide show in the course of pausing
-        if (mGetter != null) {
-            mGetter.setPosition(pos, cb, mAllImages, mHandler);
-        }
-        updateActionIcons();
-        if (showControls) showOnScreenControls();
-        scheduleDismissOnScreenControls();
-    }
-
-    @Override
-    public void onCreate(Bundle instanceState) {
-        super.onCreate(instanceState);
-
-        Intent intent = getIntent();
-        mFullScreenInNormalMode = intent.getBooleanExtra(
-                MediaStore.EXTRA_FULL_SCREEN, true);
-        mShowActionIcons = intent.getBooleanExtra(
-                MediaStore.EXTRA_SHOW_ACTION_ICONS, true);
-
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.viewimage);
-
-        mCache = new BitmapCache(CACHE_SIZE + 1);
-        
-        mAnimationIndex = -1;
-
-        mSlideShowInAnimation = new Animation[] {
-            makeInAnimation(R.anim.transition_in),
-            makeInAnimation(R.anim.slide_in),
-            makeInAnimation(R.anim.slide_in_vertical),
-        };
-
-        mSlideShowOutAnimation = new Animation[] {
-            makeOutAnimation(R.anim.transition_out),
-            makeOutAnimation(R.anim.slide_out),
-            makeOutAnimation(R.anim.slide_out_vertical),
-        };
-
-        mSlideShowImageViews[0] =
-                (ImageViewTouchBase) findViewById(R.id.image1_slideShow);
-        mSlideShowImageViews[1] =
-                (ImageViewTouchBase) findViewById(R.id.image2_slideShow);
-        for (ImageViewTouchBase v : mSlideShowImageViews) {
-            v.setVisibility(View.INVISIBLE);
-            v.setRecycler(mCache);
-        }
-
-        mActionIconPanel = findViewById(R.id.action_icon_panel);
-
-        mParam = getIntent().getParcelableExtra(KEY_IMAGE_LIST);
-
-        boolean slideshow;
-        if (instanceState != null) {
-            mSavedUri = instanceState.getParcelable(STATE_URI);
-            slideshow = instanceState.getBoolean(STATE_SLIDESHOW, false);
-            mShowControls = instanceState.getBoolean(STATE_SHOW_CONTROLS, true);
-        } else {
-            mSavedUri = getIntent().getData();
-            slideshow = intent.getBooleanExtra(EXTRA_SLIDESHOW, false);
-        }
-
-        // We only show action icons for URIs that we know we can share and
-        // delete. Although we get read permission (for the images) from
-        // applications like MMS, we cannot pass the permission to other
-        // activities due to the current framework design.
-        if (!MenuHelper.isWhiteListUri(mSavedUri)) {
-            mShowActionIcons = false;
-        }
-
-        if (mShowActionIcons) {
-            int[] pickIds = {R.id.attach, R.id.cancel};
-            int[] normalIds = {R.id.setas, R.id.play, R.id.share, R.id.discard};
-            int[] connectIds = isPickIntent() ? pickIds : normalIds;
-            for (int id : connectIds) {
-                View view = mActionIconPanel.findViewById(id);
-                view.setVisibility(View.VISIBLE);
-                view.setOnClickListener(this);
-            }
-        }
-
-        // Don't show the "delete" icon for SingleImageList.
-        if (ImageManager.isSingleImageMode(mSavedUri.toString())) {
-            mActionIconPanel.findViewById(R.id.discard)
-                    .setVisibility(View.GONE);
-        }
-
-        if (slideshow) {
-            setMode(MODE_SLIDESHOW);
-        } else {
-            if (mFullScreenInNormalMode) {
-                getWindow().addFlags(
-                        WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            }
-            if (mShowActionIcons) {
-                mActionIconPanel.setVisibility(View.VISIBLE);
-            }
-        }
-
-        mImagePager = (ViewPager) findViewById(R.id.image_pager);
-        mImagePager.setOffscreenPageLimit(CACHE_SIZE / 2);
-        mImagePager.setOnPageChangeListener(new OnPageChangeListener() {
+
+	}
+
+	// This is the cache for thumbnail bitmaps.
+	private BitmapCache mCache;
+
+	private MenuHelper.MenuItemsResult mImageMenuRunnable;
+
+	private final Runnable mDismissOnScreenControlRunner = new Runnable() {
+		public void run() {
+			hideOnScreenControls();
+		}
+	};
+
+	private void updateNextPrevControls() {
+		boolean showPrev = mCurrentPosition > 0;
+		boolean showNext = mCurrentPosition < mAllImages.getCount() - 1;
+
+		boolean prevIsVisible = mPrevImageView.getVisibility() == View.VISIBLE;
+		boolean nextIsVisible = mNextImageView.getVisibility() == View.VISIBLE;
+
+		if (showPrev && !prevIsVisible) {
+			Animation a = mShowPrevImageViewAnimation;
+			a.setDuration(500);
+			mPrevImageView.startAnimation(a);
+			mPrevImageView.setVisibility(View.VISIBLE);
+		} else if (!showPrev && prevIsVisible) {
+			Animation a = mHidePrevImageViewAnimation;
+			a.setDuration(500);
+			mPrevImageView.startAnimation(a);
+			mPrevImageView.setVisibility(View.GONE);
+		}
+
+		if (showNext && !nextIsVisible) {
+			Animation a = mShowNextImageViewAnimation;
+			a.setDuration(500);
+			mNextImageView.startAnimation(a);
+			mNextImageView.setVisibility(View.VISIBLE);
+		} else if (!showNext && nextIsVisible) {
+			Animation a = mHideNextImageViewAnimation;
+			a.setDuration(500);
+			mNextImageView.startAnimation(a);
+			mNextImageView.setVisibility(View.GONE);
+		}
+	}
+
+	private void hideOnScreenControls() {
+		if (mShowActionIcons && mActionIconPanel.getVisibility() == View.VISIBLE) {
+			Animation animation = new AlphaAnimation(1, 0);
+			animation.setDuration(500);
+			mActionIconPanel.startAnimation(animation);
+			mActionIconPanel.setVisibility(View.INVISIBLE);
+		}
+
+		if (mNextImageView.getVisibility() == View.VISIBLE) {
+			Animation a = mHideNextImageViewAnimation;
+			a.setDuration(500);
+			mNextImageView.startAnimation(a);
+			mNextImageView.setVisibility(View.INVISIBLE);
+		}
+
+		if (mPrevImageView.getVisibility() == View.VISIBLE) {
+			Animation a = mHidePrevImageViewAnimation;
+			a.setDuration(500);
+			mPrevImageView.startAnimation(a);
+			mPrevImageView.setVisibility(View.INVISIBLE);
+		}
+
+	}
+
+	private void showOnScreenControls() {
+		if (mPaused)
+			return;
+		// If the view has not been attached to the window yet, the
+		// zoomButtonControls will not able to show up. So delay it until the
+		// view has attached to window.
+		if (mActionIconPanel.getWindowToken() == null) {
+			mHandler.postGetterCallback(new Runnable() {
+				public void run() {
+					showOnScreenControls();
+				}
+			});
+			return;
+		}
+		updateNextPrevControls();
+
+		if (mShowActionIcons && mActionIconPanel.getVisibility() != View.VISIBLE) {
+			Animation animation = new AlphaAnimation(0, 1);
+			animation.setDuration(500);
+			mActionIconPanel.startAnimation(animation);
+			mActionIconPanel.setVisibility(View.VISIBLE);
+		}
+	}
+
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent m) {
+		if (mPaused)
+			return true;
+		scheduleDismissOnScreenControls();
+
+		return super.dispatchTouchEvent(m);
+	}
+
+	private void scheduleDismissOnScreenControls() {
+		mHandler.removeCallbacks(mDismissOnScreenControlRunner);
+		mHandler.postDelayed(mDismissOnScreenControlRunner, 2000);
+	}
+
+	private void setupOnScreenControls(View rootView, View ownerView) {
+		mNextImageView = rootView.findViewById(R.id.next_image);
+		mPrevImageView = rootView.findViewById(R.id.prev_image);
+
+		mNextImageView.setOnClickListener(this);
+		mPrevImageView.setOnClickListener(this);
+
+	}
+
+	private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+		@Override
+		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+			if (mPaused)
+				return false;
+			ImageViewTouch imageView = mImageView;
+			if (imageView.getScale() > 1F) {
+				imageView.postTranslateCenter(-distanceX, -distanceY);
+			}
+			return true;
+		}
+
+		@Override
+		public boolean onSingleTapUp(MotionEvent e) {
+			if (mPaused)
+				return false;
+			setMode(MODE_NORMAL);
+			return true;
+		}
+
+		@Override
+		public boolean onSingleTapConfirmed(MotionEvent e) {
+			if (mPaused)
+				return false;
+			showOnScreenControls();
+			scheduleDismissOnScreenControls();
+			return false;
+		}
+
+		@Override
+		public boolean onDoubleTap(MotionEvent e) {
+			if (mPaused)
+				return false;
+			ImageViewTouch imageView = mImageView;
+
+			// Switch between the original scale and 3x scale.
+			if (imageView.getScale() > 2F) {
+				mImageView.zoomTo(1f);
+				mImagePager.intercept = true;
+			} else {
+				mImageView.zoomToPoint(3f, e.getX(), e.getY());
+				mImagePager.intercept = false;
+			}
+			return true;
+		}
+	}
+
+	boolean isPickIntent() {
+		String action = getIntent().getAction();
+		return (Intent.ACTION_PICK.equals(action) || Intent.ACTION_GET_CONTENT.equals(action));
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+
+		MenuItem item = menu.add(Menu.NONE, Menu.NONE, MenuHelper.POSITION_SLIDESHOW,
+				R.string.slide_show);
+		item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			public boolean onMenuItemClick(MenuItem item) {
+				setMode(MODE_SLIDESHOW);
+				mLastSlideShowImage = mCurrentPosition;
+				loadNextImage(mCurrentPosition, 0, true);
+				return true;
+			}
+		});
+		item.setIcon(android.R.drawable.ic_menu_slideshow);
+
+		mImageMenuRunnable = MenuHelper.addImageMenuItems(menu, MenuHelper.INCLUDE_ALL,
+				ViewImage.this, mHandler, mDeletePhotoRunnable, new MenuHelper.MenuInvoker() {
+					public void run(final MenuHelper.MenuCallback cb) {
+						if (mPaused)
+							return;
+						setMode(MODE_NORMAL);
+
+						IImage image = mAllImages.getImageAt(mCurrentPosition);
+						Uri uri = image.fullSizeImageUri();
+						cb.run(uri, image);
+
+						// We might have deleted all images in the callback, so
+						// call setImage() only if we still have some images.
+						if (mAllImages.getCount() > 0) {
+							mImageView.clear();
+							setImage(mCurrentPosition, false);
+						}
+					}
+				});
+
+		item = menu.add(Menu.NONE, Menu.NONE, MenuHelper.POSITION_GALLERY_SETTING,
+				R.string.camerasettings);
+		item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+			public boolean onMenuItemClick(MenuItem item) {
+				Intent preferences = new Intent();
+				preferences.setClass(ViewImage.this, GallerySettings.class);
+				startActivity(preferences);
+				return true;
+			}
+		});
+		item.setAlphabeticShortcut('p');
+		item.setIcon(android.R.drawable.ic_menu_preferences);
+
+		return true;
+	}
+
+	protected Runnable mDeletePhotoRunnable = new Runnable() {
+		public void run() {
+			mAllImages.removeImageAt(mCurrentPosition);
+			if (mAllImages.getCount() == 0) {
+				finish();
+				return;
+			} else {
+				if (mCurrentPosition == mAllImages.getCount()) {
+					mCurrentPosition -= 1;
+				}
+			}
+			mImageView.clear();
+			mCache.clear(); // Because the position number is changed.
+			setImage(mCurrentPosition, true);
+		}
+	};
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+
+		super.onPrepareOptionsMenu(menu);
+		if (mPaused)
+			return false;
+
+		setMode(MODE_NORMAL);
+		IImage image = mAllImages.getImageAt(mCurrentPosition);
+
+		if (mImageMenuRunnable != null) {
+			mImageMenuRunnable.gettingReadyToOpen(menu, image);
+		}
+
+		Uri uri = mAllImages.getImageAt(mCurrentPosition).fullSizeImageUri();
+		MenuHelper.enableShareMenuItem(menu, MenuHelper.isWhiteListUri(uri));
+
+		MenuHelper.enableShowOnMapMenuItem(menu, MenuHelper.hasLatLngData(image));
+
+		return true;
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		boolean b = super.onMenuItemSelected(featureId, item);
+		if (mImageMenuRunnable != null) {
+			mImageMenuRunnable.aboutToCall(item, mAllImages.getImageAt(mCurrentPosition));
+		}
+		return b;
+	}
+
+	void setImage(int pos, boolean showControls) {
+		mCurrentPosition = pos;
+		Bitmap b = mCache.getBitmap(pos);
+		if (b != null) {
+			IImage image = mAllImages.getImageAt(pos);
+			mImageView.setImageRotateBitmapResetBase(
+					new RotateBitmap(b, image.getDegreesRotated()), true);
+		} else {
+			hidenOrShowProgress(true);
+		}
+
+		ImageGetterCallback cb = new ImageGetterCallback() {
+			public void completed() {
+			}
+
+			public boolean wantsThumbnail(int pos, int offset) {
+				return !mCache.hasBitmap(pos + offset);
+			}
+
+			public boolean wantsFullImage(int pos, int offset) {
+				return offset == 0;
+			}
+
+			public int fullImageSizeToUse(int pos, int offset) {
+				// this number should be bigger so that we can zoom. we may
+				// need to get fancier and read in the fuller size image as the
+				// user starts to zoom.
+				// Originally the value is set to 480 in order to avoid OOM.
+				// Now we set it to 2048 because of using
+				// native memory allocation for Bitmaps.
+				final int imageViewSize = 2048;
+				return imageViewSize;
+			}
+
+			public int[] loadOrder() {
+				return sOrderAdjacents;
+			}
+
+			public void imageLoaded(int pos, int offset, RotateBitmap bitmap, boolean isThumb) {
+				if (pos != mCurrentPosition) {
+					bitmap.recycle();
+					return;
+				}
+
+				if (isThumb) {
+					mCache.put(pos + offset, bitmap.getBitmap());
+				}
+
+				ImageViewTouch image = mImagePagerItems.get(pos + offset);
+				image.setImageRotateBitmapResetBase(bitmap, isThumb);
+				if (offset == 0)
+					hidenOrShowProgress(false);
+			}
+		};
+
+		// Could be null if we're stopping a slide show in the course of pausing
+		if (mGetter != null) {
+			mGetter.setPosition(pos, cb, mAllImages, mHandler);
+		}
+		updateActionIcons();
+		if (showControls)
+			showOnScreenControls();
+		scheduleDismissOnScreenControls();
+	}
+
+	@Override
+	public void onCreate(Bundle instanceState) {
+		super.onCreate(instanceState);
+
+		Intent intent = getIntent();
+		mFullScreenInNormalMode = intent.getBooleanExtra(MediaStore.EXTRA_FULL_SCREEN, true);
+		mShowActionIcons = intent.getBooleanExtra(MediaStore.EXTRA_SHOW_ACTION_ICONS, true);
+
+		mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+		setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.viewimage);
+
+		// 实践表明，缓存的数量是控件缓存数量+2时，不会出现 use recycled bitmap 错误,具体原因还有待分析
+		mCache = new BitmapCache(CACHE_SIZE + 2);
+
+		mAnimationIndex = -1;
+
+		mSlideShowInAnimation = new Animation[] { makeInAnimation(R.anim.transition_in),
+				makeInAnimation(R.anim.slide_in), makeInAnimation(R.anim.slide_in_vertical), };
+
+		mSlideShowOutAnimation = new Animation[] { makeOutAnimation(R.anim.transition_out),
+				makeOutAnimation(R.anim.slide_out), makeOutAnimation(R.anim.slide_out_vertical), };
+
+		mSlideShowImageViews[0] = (ImageViewTouchBase)findViewById(R.id.image1_slideShow);
+		mSlideShowImageViews[1] = (ImageViewTouchBase)findViewById(R.id.image2_slideShow);
+		for (ImageViewTouchBase v : mSlideShowImageViews) {
+			v.setVisibility(View.INVISIBLE);
+			v.setRecycler(mCache);
+		}
+
+		mActionIconPanel = findViewById(R.id.action_icon_panel);
+
+		mParam = getIntent().getParcelableExtra(KEY_IMAGE_LIST);
+
+		boolean slideshow;
+		if (instanceState != null) {
+			mSavedUri = instanceState.getParcelable(STATE_URI);
+			slideshow = instanceState.getBoolean(STATE_SLIDESHOW, false);
+		} else {
+			mSavedUri = getIntent().getData();
+			slideshow = intent.getBooleanExtra(EXTRA_SLIDESHOW, false);
+		}
+
+		// We only show action icons for URIs that we know we can share and
+		// delete. Although we get read permission (for the images) from
+		// applications like MMS, we cannot pass the permission to other
+		// activities due to the current framework design.
+		if (!MenuHelper.isWhiteListUri(mSavedUri)) {
+			mShowActionIcons = false;
+		}
+
+		if (mShowActionIcons) {
+			int[] pickIds = { R.id.attach, R.id.cancel };
+			int[] normalIds = { R.id.setas, R.id.play, R.id.share, R.id.discard };
+			int[] connectIds = isPickIntent() ? pickIds : normalIds;
+			for (int id : connectIds) {
+				View view = mActionIconPanel.findViewById(id);
+				view.setVisibility(View.VISIBLE);
+				view.setOnClickListener(this);
+			}
+		}
+
+		// Don't show the "delete" icon for SingleImageList.
+		if (ImageManager.isSingleImageMode(mSavedUri.toString())) {
+			mActionIconPanel.findViewById(R.id.discard).setVisibility(View.GONE);
+		}
+
+		if (slideshow) {
+			setMode(MODE_SLIDESHOW);
+		} else {
+			if (mFullScreenInNormalMode) {
+				getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+			}
+			if (mShowActionIcons) {
+				mActionIconPanel.setVisibility(View.VISIBLE);
+			}
+		}
+
+		mImagePager = (MyViewPager)findViewById(R.id.image_pager);
+		mImagePager.setOffscreenPageLimit(CACHE_SIZE / 2);
+		mImagePager.setOnPageChangeListener(new OnPageChangeListener() {
 			@Override
 			public void onPageSelected(int arg0) {
 				mCurrentPosition = arg0;
-				System.out.println(String.format(" onPageSelected arg0:%s ", arg0));
-				if(!mImagePagerItems.isEmpty()){
+				if (!mImagePagerItems.isEmpty()) {
 					mImageView = mImagePagerItems.get(arg0);
 				}
+				updateNextPrevControls();
 			}
-			
+
 			@Override
 			public void onPageScrolled(int arg0, float arg1, int arg2) {
-				
+
 			}
-			
+
 			@Override
 			public void onPageScrollStateChanged(int arg0) {
-				
+
 			}
 		});
-        
-        makeGetter();
-        setupOnScreenControls(findViewById(R.id.rootLayout), mImagePager);
-        //初始化ImagePager适配器
-        mpagerAdapter = new MyPagerAdapter();
-        mProgress = (ProgressBar)findViewById(R.id.progress);
-    }
-    
-    private void hidenOrShowProgress(boolean loading){
-    	if(loading)
-    		mProgress.setVisibility(View.VISIBLE);
-    	else mProgress.setVisibility(View.INVISIBLE);
-    }
 
-    private void updateActionIcons() {
-        if (isPickIntent()) return;
+		makeGetter();
+		setupOnScreenControls(findViewById(R.id.rootLayout), mImagePager);
+		// 初始化ImagePager适配器
+		mpagerAdapter = new MyPagerAdapter();
+		mProgress = (ProgressBar)findViewById(R.id.progress);
+	}
 
-        IImage image = mAllImages.getImageAt(mCurrentPosition);
-        View panel = mActionIconPanel;
-        if (image instanceof VideoObject) {
-            panel.findViewById(R.id.setas).setVisibility(View.GONE);
-            panel.findViewById(R.id.play).setVisibility(View.VISIBLE);
-        } else {
-            panel.findViewById(R.id.setas).setVisibility(View.VISIBLE);
-            panel.findViewById(R.id.play).setVisibility(View.GONE);
-        }
-    }
+	private void hidenOrShowProgress(boolean loading) {
+		if (loading)
+			mProgress.setVisibility(View.VISIBLE);
+		else
+			mProgress.setVisibility(View.INVISIBLE);
+	}
 
-    private Animation makeInAnimation(int id) {
-        Animation inAnimation = AnimationUtils.loadAnimation(this, id);
-        return inAnimation;
-    }
+	private void updateActionIcons() {
+		if (isPickIntent())
+			return;
 
-    private Animation makeOutAnimation(int id) {
-        Animation outAnimation = AnimationUtils.loadAnimation(this, id);
-        return outAnimation;
-    }
+		IImage image = mAllImages.getImageAt(mCurrentPosition);
+		View panel = mActionIconPanel;
+		if (image instanceof VideoObject) {
+			panel.findViewById(R.id.setas).setVisibility(View.GONE);
+			panel.findViewById(R.id.play).setVisibility(View.VISIBLE);
+		} else {
+			panel.findViewById(R.id.setas).setVisibility(View.VISIBLE);
+			panel.findViewById(R.id.play).setVisibility(View.GONE);
+		}
+	}
 
-    private static int getPreferencesInteger(
-            SharedPreferences prefs, String key, int defaultValue) {
-        String value = prefs.getString(key, null);
-        try {
-            return value == null ? defaultValue : Integer.parseInt(value);
-        } catch (NumberFormatException ex) {
-            Log.e(TAG, "couldn't parse preference: " + value, ex);
-            return defaultValue;
-        }
-    }
+	private Animation makeInAnimation(int id) {
+		Animation inAnimation = AnimationUtils.loadAnimation(this, id);
+		return inAnimation;
+	}
 
-    void setMode(int mode) {
-        if (mMode == mode) {
-            return;
-        }
-        View slideshowPanel = findViewById(R.id.slideShowContainer);
-        View normalPanel = findViewById(R.id.abs);
+	private Animation makeOutAnimation(int id) {
+		Animation outAnimation = AnimationUtils.loadAnimation(this, id);
+		return outAnimation;
+	}
 
-        Window win = getWindow();
-        mMode = mode;
-        if (mode == MODE_SLIDESHOW) {
-            slideshowPanel.setVisibility(View.VISIBLE);
-            normalPanel.setVisibility(View.GONE);
+	private static int getPreferencesInteger(SharedPreferences prefs, String key, int defaultValue) {
+		String value = prefs.getString(key, null);
+		try {
+			return value == null ? defaultValue : Integer.parseInt(value);
+		} catch (NumberFormatException ex) {
+			Log.e(TAG, "couldn't parse preference: " + value, ex);
+			return defaultValue;
+		}
+	}
 
-            win.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN
-                    | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+	void setMode(int mode) {
+		if (mMode == mode) {
+			return;
+		}
+		View slideshowPanel = findViewById(R.id.slideShowContainer);
+		View normalPanel = findViewById(R.id.abs);
 
-            mImageView.clear();
-            mActionIconPanel.setVisibility(View.GONE);
+		Window win = getWindow();
+		mMode = mode;
+		if (mode == MODE_SLIDESHOW) {
+			slideshowPanel.setVisibility(View.VISIBLE);
+			normalPanel.setVisibility(View.GONE);
 
-            slideshowPanel.getRootView().requestLayout();
+			win.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN
+					| WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-            // The preferences we want to read:
-            //   mUseShuffleOrder
-            //   mSlideShowLoop
-            //   mAnimationIndex
-            //   mSlideShowInterval
+			mImageView.clear();
+			mActionIconPanel.setVisibility(View.GONE);
 
-            mUseShuffleOrder = mPrefs.getBoolean(PREF_SHUFFLE_SLIDESHOW, false);
-            mSlideShowLoop = mPrefs.getBoolean(PREF_SLIDESHOW_REPEAT, false);
-            mAnimationIndex = getPreferencesInteger(
-                    mPrefs, "pref_gallery_slideshow_transition_key", 0);
-            mSlideShowInterval = getPreferencesInteger(
-                    mPrefs, "pref_gallery_slideshow_interval_key", 3) * 1000;
-        } else {
-            slideshowPanel.setVisibility(View.GONE);
-            normalPanel.setVisibility(View.VISIBLE);
+			slideshowPanel.getRootView().requestLayout();
 
-            win.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            if (mFullScreenInNormalMode) {
-                win.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            } else {
-                win.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            }
+			// The preferences we want to read:
+			// mUseShuffleOrder
+			// mSlideShowLoop
+			// mAnimationIndex
+			// mSlideShowInterval
 
-            if (mGetter != null) {
-                mGetter.cancelCurrent();
-            }
+			mUseShuffleOrder = mPrefs.getBoolean(PREF_SHUFFLE_SLIDESHOW, false);
+			mSlideShowLoop = mPrefs.getBoolean(PREF_SLIDESHOW_REPEAT, false);
+			mAnimationIndex = getPreferencesInteger(mPrefs,
+					"pref_gallery_slideshow_transition_key", 0);
+			mSlideShowInterval = getPreferencesInteger(mPrefs,
+					"pref_gallery_slideshow_interval_key", 3) * 1000;
+		} else {
+			slideshowPanel.setVisibility(View.GONE);
+			normalPanel.setVisibility(View.VISIBLE);
 
-            if (mShowActionIcons) {
-                Animation animation = new AlphaAnimation(0F, 1F);
-                animation.setDuration(500);
-                mActionIconPanel.setAnimation(animation);
-                mActionIconPanel.setVisibility(View.VISIBLE);
-            }
+			win.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+			if (mFullScreenInNormalMode) {
+				win.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+			} else {
+				win.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+			}
 
-            ImageViewTouchBase dst = mImageView;
-            for (ImageViewTouchBase ivt : mSlideShowImageViews) {
-                ivt.clear();
-            }
+			if (mGetter != null) {
+				mGetter.cancelCurrent();
+			}
 
-            mShuffleOrder = null;
+			if (mShowActionIcons) {
+				Animation animation = new AlphaAnimation(0F, 1F);
+				animation.setDuration(500);
+				mActionIconPanel.setAnimation(animation);
+				mActionIconPanel.setVisibility(View.VISIBLE);
+			}
 
-            // mGetter null is a proxy for being paused
-            if (mGetter != null) {
-                setImage(mCurrentPosition, true);
-            }
-        }
-    }
+			for (ImageViewTouchBase ivt : mSlideShowImageViews) {
+				ivt.clear();
+			}
 
-    private void generateShuffleOrder() {
-        if (mShuffleOrder == null
-                || mShuffleOrder.length != mAllImages.getCount()) {
-            mShuffleOrder = new int[mAllImages.getCount()];
-            for (int i = 0, n = mShuffleOrder.length; i < n; i++) {
-                mShuffleOrder[i] = i;
-            }
-        }
+			mShuffleOrder = null;
 
-        for (int i = mShuffleOrder.length - 1; i >= 0; i--) {
-            int r = mRandom.nextInt(i + 1);
-            if (r != i) {
-                int tmp = mShuffleOrder[r];
-                mShuffleOrder[r] = mShuffleOrder[i];
-                mShuffleOrder[i] = tmp;
-            }
-        }
-    }
+			// mGetter null is a proxy for being paused
+			if (mGetter != null) {
+				setImage(mCurrentPosition, true);
+			}
+		}
+	}
 
-    private void loadNextImage(final int requestedPos, final long delay,
-                               final boolean firstCall) {
-        if (firstCall && mUseShuffleOrder) {
-            generateShuffleOrder();
-        }
+	private void generateShuffleOrder() {
+		if (mShuffleOrder == null || mShuffleOrder.length != mAllImages.getCount()) {
+			mShuffleOrder = new int[mAllImages.getCount()];
+			for (int i = 0, n = mShuffleOrder.length; i < n; i++) {
+				mShuffleOrder[i] = i;
+			}
+		}
 
-        final long targetDisplayTime = System.currentTimeMillis() + delay;
+		for (int i = mShuffleOrder.length - 1; i >= 0; i--) {
+			int r = mRandom.nextInt(i + 1);
+			if (r != i) {
+				int tmp = mShuffleOrder[r];
+				mShuffleOrder[r] = mShuffleOrder[i];
+				mShuffleOrder[i] = tmp;
+			}
+		}
+	}
 
-        ImageGetterCallback cb = new ImageGetterCallback() {
-            public void completed() {
-            }
+	private void loadNextImage(final int requestedPos, final long delay, final boolean firstCall) {
+		if (firstCall && mUseShuffleOrder) {
+			generateShuffleOrder();
+		}
 
-            public boolean wantsThumbnail(int pos, int offset) {
-                return true;
-            }
+		final long targetDisplayTime = System.currentTimeMillis() + delay;
 
-            public boolean wantsFullImage(int pos, int offset) {
-                return false;
-            }
+		ImageGetterCallback cb = new ImageGetterCallback() {
+			public void completed() {
+			}
 
-            public int [] loadOrder() {
-                return sOrderSlideshow;
-            }
+			public boolean wantsThumbnail(int pos, int offset) {
+				return true;
+			}
 
-            public int fullImageSizeToUse(int pos, int offset) {
-                return 480; // TODO compute this
-            }
+			public boolean wantsFullImage(int pos, int offset) {
+				return false;
+			}
 
-            public void imageLoaded(final int pos, final int offset,
-                    final RotateBitmap bitmap, final boolean isThumb) {
-                long timeRemaining = Math.max(0,
-                        targetDisplayTime - System.currentTimeMillis());
-                mHandler.postDelayedGetterCallback(new Runnable() {
-                    public void run() {
-                        if (mMode == MODE_NORMAL) {
-                            return;
-                        }
+			public int[] loadOrder() {
+				return sOrderSlideshow;
+			}
 
-                        ImageViewTouchBase oldView =
-                                mSlideShowImageViews[mSlideShowImageCurrent];
+			public int fullImageSizeToUse(int pos, int offset) {
+				return 480; // TODO compute this
+			}
 
-                        if (++mSlideShowImageCurrent
-                                == mSlideShowImageViews.length) {
-                            mSlideShowImageCurrent = 0;
-                        }
+			public void imageLoaded(final int pos, final int offset, final RotateBitmap bitmap,
+					final boolean isThumb) {
+				long timeRemaining = Math.max(0, targetDisplayTime - System.currentTimeMillis());
+				mHandler.postDelayedGetterCallback(new Runnable() {
+					public void run() {
+						if (mMode == MODE_NORMAL) {
+							return;
+						}
 
-                        ImageViewTouchBase newView =
-                                mSlideShowImageViews[mSlideShowImageCurrent];
-                        newView.setVisibility(View.VISIBLE);
-                        newView.setImageRotateBitmapResetBase(bitmap, true);
-                        newView.bringToFront();
+						ImageViewTouchBase oldView = mSlideShowImageViews[mSlideShowImageCurrent];
 
-                        int animation = 0;
+						if (++mSlideShowImageCurrent == mSlideShowImageViews.length) {
+							mSlideShowImageCurrent = 0;
+						}
 
-                        if (mAnimationIndex == -1) {
-                            int n = mRandom.nextInt(
-                                    mSlideShowInAnimation.length);
-                            animation = n;
-                        } else {
-                            animation = mAnimationIndex;
-                        }
+						ImageViewTouchBase newView = mSlideShowImageViews[mSlideShowImageCurrent];
+						newView.setVisibility(View.VISIBLE);
+						newView.setImageRotateBitmapResetBase(bitmap, true);
+						newView.bringToFront();
 
-                        Animation aIn = mSlideShowInAnimation[animation];
-                        newView.startAnimation(aIn);
-                        newView.setVisibility(View.VISIBLE);
+						int animation = 0;
 
-                        Animation aOut = mSlideShowOutAnimation[animation];
-                        oldView.setVisibility(View.INVISIBLE);
-                        oldView.startAnimation(aOut);
+						if (mAnimationIndex == -1) {
+							int n = mRandom.nextInt(mSlideShowInAnimation.length);
+							animation = n;
+						} else {
+							animation = mAnimationIndex;
+						}
 
-                        mCurrentPosition = requestedPos;
+						Animation aIn = mSlideShowInAnimation[animation];
+						newView.startAnimation(aIn);
+						newView.setVisibility(View.VISIBLE);
 
-                        if (mCurrentPosition == mLastSlideShowImage
-                                && !firstCall) {
-                            if (mSlideShowLoop) {
-                                if (mUseShuffleOrder) {
-                                    generateShuffleOrder();
-                                }
-                            } else {
-                                setMode(MODE_NORMAL);
-                                return;
-                            }
-                        }
+						Animation aOut = mSlideShowOutAnimation[animation];
+						oldView.setVisibility(View.INVISIBLE);
+						oldView.startAnimation(aOut);
 
-                        loadNextImage(
-                                (mCurrentPosition + 1) % mAllImages.getCount(),
-                                mSlideShowInterval, false);
-                    }
-                }, timeRemaining);
-            }
-        };
-        // Could be null if we're stopping a slide show in the course of pausing
-        if (mGetter != null) {
-            int pos = requestedPos;
-            if (mShuffleOrder != null) {
-                pos = mShuffleOrder[pos];
-            }
-            mGetter.setPosition(pos, cb, mAllImages, mHandler);
-        }
-    }
+						mCurrentPosition = requestedPos;
 
-    private void makeGetter() {
-        mGetter = new ImageGetter(getContentResolver());
-    }
+						if (mCurrentPosition == mLastSlideShowImage && !firstCall) {
+							if (mSlideShowLoop) {
+								if (mUseShuffleOrder) {
+									generateShuffleOrder();
+								}
+							} else {
+								setMode(MODE_NORMAL);
+								return;
+							}
+						}
 
-    private IImageList buildImageListFromUri(Uri uri) {
-        String sortOrder = mPrefs.getString(
-                "pref_gallery_sort_key", "descending");
-        int sort = sortOrder.equals("ascending")
-                ? ImageManager.SORT_ASCENDING
-                : ImageManager.SORT_DESCENDING;
-        return ImageManager.makeImageList(getContentResolver(), uri, sort);
-    }
+						loadNextImage((mCurrentPosition + 1) % mAllImages.getCount(),
+								mSlideShowInterval, false);
+					}
+				}, timeRemaining);
+			}
+		};
+		// Could be null if we're stopping a slide show in the course of pausing
+		if (mGetter != null) {
+			int pos = requestedPos;
+			if (mShuffleOrder != null) {
+				pos = mShuffleOrder[pos];
+			}
+			mGetter.setPosition(pos, cb, mAllImages, mHandler);
+		}
+	}
 
-    private boolean init(Uri uri) {
-        if (uri == null) return false;
-        mAllImages = (mParam == null)
-                ? buildImageListFromUri(uri)
-                : ImageManager.makeImageList(getContentResolver(), mParam);
-        IImage image = mAllImages.getImageForUri(uri);
-        if (image == null) return false;
-        mCurrentPosition = mAllImages.getImageIndex(image);
-        mLastSlideShowImage = mCurrentPosition;
-        return true;
-    }
+	private void makeGetter() {
+		mGetter = new ImageGetter(getContentResolver());
+	}
 
-    private Uri getCurrentUri() {
-        if (mAllImages.getCount() == 0) return null;
-        IImage image = mAllImages.getImageAt(mCurrentPosition);
-        if (image == null) return null;
-        return image.fullSizeImageUri();
-    }
+	private IImageList buildImageListFromUri(Uri uri) {
+		String sortOrder = mPrefs.getString("pref_gallery_sort_key", "descending");
+		int sort = sortOrder.equals("ascending") ? ImageManager.SORT_ASCENDING
+				: ImageManager.SORT_DESCENDING;
+		return ImageManager.makeImageList(getContentResolver(), uri, sort);
+	}
 
-    @Override
-    public void onSaveInstanceState(Bundle b) {
-        super.onSaveInstanceState(b);
-        b.putParcelable(STATE_URI,
-                mAllImages.getImageAt(mCurrentPosition).fullSizeImageUri());
-        b.putBoolean(STATE_SLIDESHOW, mMode == MODE_SLIDESHOW);
-    }
+	private boolean init(Uri uri) {
+		if (uri == null)
+			return false;
+		mAllImages = (mParam == null) ? buildImageListFromUri(uri) : ImageManager.makeImageList(
+				getContentResolver(), mParam);
+		IImage image = mAllImages.getImageForUri(uri);
+		if (image == null)
+			return false;
+		mCurrentPosition = mAllImages.getImageIndex(image);
+		mLastSlideShowImage = mCurrentPosition;
+		return true;
+	}
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        mPaused = false;
-
-        if (!init(mSavedUri)) {
-            Log.w(TAG, "init failed: " + mSavedUri);
-            finish();
-            return;
-        }
-
-        // normally this will never be zero but if one "backs" into this
-        // activity after removing the sdcard it could be zero.  in that
-        // case just "finish" since there's nothing useful that can happen.
-        int count = mAllImages.getCount();
-        if (count == 0) {
-            finish();
-            return;
-        } else if (count <= mCurrentPosition) {
-            mCurrentPosition = count - 1;
-        }
-        mImagePager.setAdapter(mpagerAdapter);
-        mImagePager.setCurrentItem(mCurrentPosition);
-
-        if (mGetter == null) {
-            makeGetter();
-        }
-        
-        if (mMode == MODE_SLIDESHOW) {
-            loadNextImage(mCurrentPosition, 0, true);
-        } else {  // MODE_NORMAL
-            mShowControls = false;
-        }
-		System.out.println(String.format("set setCurrentItem: %s", mCurrentPosition));
-    }
+	private Uri getCurrentUri() {
+		if (mAllImages.getCount() == 0)
+			return null;
+		IImage image = mAllImages.getImageAt(mCurrentPosition);
+		if (image == null)
+			return null;
+		return image.fullSizeImageUri();
+	}
 
 	@Override
-    public void onStop() {
-        super.onStop();
-        mPaused = true;
+	public void onSaveInstanceState(Bundle b) {
+		super.onSaveInstanceState(b);
+		b.putParcelable(STATE_URI, mAllImages.getImageAt(mCurrentPosition).fullSizeImageUri());
+		b.putBoolean(STATE_SLIDESHOW, mMode == MODE_SLIDESHOW);
+	}
 
-        // mGetter could be null if we call finish() and leave early in
-        // onStart().
-        if (mGetter != null) {
-            mGetter.cancelCurrent();
-            mGetter.stop();
-            mGetter = null;
-        }
-        setMode(MODE_NORMAL);
+	@Override
+	public void onStart() {
+		super.onStart();
+		mPaused = false;
 
-        // removing all callback in the message queue
-        mHandler.removeAllGetterCallbacks();
+		if (!init(mSavedUri)) {
+			Log.w(TAG, "init failed: " + mSavedUri);
+			finish();
+			return;
+		}
 
-        if (mAllImages != null) {
-            mSavedUri = getCurrentUri();
-            mAllImages.close();
-            mAllImages = null;
-        }
+		// normally this will never be zero but if one "backs" into this
+		// activity after removing the sdcard it could be zero. in that
+		// case just "finish" since there's nothing useful that can happen.
+		int count = mAllImages.getCount();
+		if (count == 0) {
+			finish();
+			return;
+		} else if (count <= mCurrentPosition) {
+			mCurrentPosition = count - 1;
+		}
 
-        hideOnScreenControls();
-        mImageView.clear();
-        mCache.clear();
+		if (mGetter == null) {
+			makeGetter();
+		}
+		mImagePager.setAdapter(mpagerAdapter);
+		mImagePager.setCurrentItem(mCurrentPosition);
 
-        for (ImageViewTouchBase iv : mSlideShowImageViews) {
-            iv.clear();
-        }
-    }
+		if (mMode == MODE_SLIDESHOW) {
+			loadNextImage(mCurrentPosition, 0, true);
+		}
+	}
 
-    private void startShareMediaActivity(IImage image) {
-        boolean isVideo = image instanceof VideoObject;
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_SEND);
-        intent.setType(image.getMimeType());
-        intent.putExtra(Intent.EXTRA_STREAM, image.fullSizeImageUri());
-        try {
-            startActivity(Intent.createChooser(intent, getText(
-                    isVideo ? R.string.sendVideo : R.string.sendImage)));
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(this, isVideo
-                    ? R.string.no_way_to_share_image
-                    : R.string.no_way_to_share_video,
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
+	@Override
+	public void onStop() {
+		super.onStop();
+		mPaused = true;
 
-    private void startPlayVideoActivity() {
-        IImage image = mAllImages.getImageAt(mCurrentPosition);
-        Intent intent = new Intent(
-                Intent.ACTION_VIEW, image.fullSizeImageUri());
-        try {
-            startActivity(intent);
-        } catch (android.content.ActivityNotFoundException ex) {
-            Log.e(TAG, "Couldn't view video " + image.fullSizeImageUri(), ex);
-        }
-    }
+		// mGetter could be null if we call finish() and leave early in
+		// onStart().
+		if (mGetter != null) {
+			mGetter.cancelCurrent();
+			mGetter.stop();
+			mGetter = null;
+		}
+		setMode(MODE_NORMAL);
 
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.discard:
-                MenuHelper.deletePhoto(this, mDeletePhotoRunnable);
-                break;
-            case R.id.play:
-                startPlayVideoActivity();
-                break;
-            case R.id.share: {
-                IImage image = mAllImages.getImageAt(mCurrentPosition);
-                if (!MenuHelper.isWhiteListUri(image.fullSizeImageUri())) {
-                    return;
-                }
-                startShareMediaActivity(image);
-                break;
-            }
-            case R.id.setas: {
-                IImage image = mAllImages.getImageAt(mCurrentPosition);
-                Intent intent = Util.createSetAsIntent(image);
-                try {
-                    startActivity(Intent.createChooser(
-                            intent, getText(R.string.setImage)));
-                } catch (android.content.ActivityNotFoundException ex) {
-                    Toast.makeText(this, R.string.no_way_to_share_video,
-                            Toast.LENGTH_SHORT).show();
-                }
-                break;
-            }
-            case R.id.next_image:
-                moveNextOrPrevious(1);
-                break;
-            case R.id.prev_image:
-                moveNextOrPrevious(-1);
-                break;
-        }
-    }
+		// removing all callback in the message queue
+		mHandler.removeAllGetterCallbacks();
 
-    private void moveNextOrPrevious(int delta) {
-        int nextImagePos = mCurrentPosition + delta;
-        if ((0 <= nextImagePos) && (nextImagePos < mAllImages.getCount())) {
-        	mImagePager.setCurrentItem(nextImagePos, true);
-            setImage(nextImagePos, true);
-            showOnScreenControls();
-        }
-    }
+		if (mAllImages != null) {
+			mSavedUri = getCurrentUri();
+			mAllImages.close();
+			mAllImages = null;
+		}
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-            Intent data) {
-        switch (requestCode) {
-            case MenuHelper.RESULT_COMMON_MENU_CROP:
-                if (resultCode == RESULT_OK) {
-                    // The CropImage activity passes back the Uri of the
-                    // cropped image as the Action rather than the Data.
-                    mSavedUri = Uri.parse(data.getAction());
+		hideOnScreenControls();
+		mImageView.clear();
+		mCache.clear();
 
-                    // if onStart() runs before, then set the returned
-                    // image as currentImage.
-                    if (mAllImages != null) {
-                        IImage image = mAllImages.getImageForUri(mSavedUri);
-                        // image could be null if SD card is removed.
-                        if (image == null) {
-                            finish();
-                        } else {
-                            mCurrentPosition = mAllImages.getImageIndex(image);
-                            setImage(mCurrentPosition, false);
-                        }
-                    }
-                }
-                break;
-        }
-    }
+		for (ImageViewTouchBase iv : mSlideShowImageViews) {
+			iv.clear();
+		}
+	}
+
+	private void startShareMediaActivity(IImage image) {
+		boolean isVideo = image instanceof VideoObject;
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_SEND);
+		intent.setType(image.getMimeType());
+		intent.putExtra(Intent.EXTRA_STREAM, image.fullSizeImageUri());
+		try {
+			startActivity(Intent.createChooser(intent, getText(isVideo ? R.string.sendVideo
+					: R.string.sendImage)));
+		} catch (android.content.ActivityNotFoundException ex) {
+			Toast.makeText(this,
+					isVideo ? R.string.no_way_to_share_image : R.string.no_way_to_share_video,
+					Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void startPlayVideoActivity() {
+		IImage image = mAllImages.getImageAt(mCurrentPosition);
+		Intent intent = new Intent(Intent.ACTION_VIEW, image.fullSizeImageUri());
+		try {
+			startActivity(intent);
+		} catch (android.content.ActivityNotFoundException ex) {
+			Log.e(TAG, "Couldn't view video " + image.fullSizeImageUri(), ex);
+		}
+	}
+
+	public void onClick(View v) {
+		switch (v.getId()) {
+			case R.id.discard:
+				MenuHelper.deletePhoto(this, mDeletePhotoRunnable);
+				break;
+			case R.id.play:
+				startPlayVideoActivity();
+				break;
+			case R.id.share: {
+				IImage image = mAllImages.getImageAt(mCurrentPosition);
+				if (!MenuHelper.isWhiteListUri(image.fullSizeImageUri())) {
+					return;
+				}
+				startShareMediaActivity(image);
+				break;
+			}
+			case R.id.setas: {
+				IImage image = mAllImages.getImageAt(mCurrentPosition);
+				Intent intent = Util.createSetAsIntent(image);
+				try {
+					startActivity(Intent.createChooser(intent, getText(R.string.setImage)));
+				} catch (android.content.ActivityNotFoundException ex) {
+					Toast.makeText(this, R.string.no_way_to_share_video, Toast.LENGTH_SHORT).show();
+				}
+				break;
+			}
+			case R.id.next_image:
+				moveNextOrPrevious(1);
+				break;
+			case R.id.prev_image:
+				moveNextOrPrevious(-1);
+				break;
+		}
+	}
+
+	private void moveNextOrPrevious(int delta) {
+		int nextImagePos = mCurrentPosition + delta;
+		if ((0 <= nextImagePos) && (nextImagePos < mAllImages.getCount())) {
+			mImagePager.setCurrentItem(nextImagePos, true);
+			setImage(nextImagePos, true);
+			showOnScreenControls();
+		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch (requestCode) {
+			case MenuHelper.RESULT_COMMON_MENU_CROP:
+				if (resultCode == RESULT_OK) {
+					// The CropImage activity passes back the Uri of the
+					// cropped image as the Action rather than the Data.
+					mSavedUri = Uri.parse(data.getAction());
+
+					// if onStart() runs before, then set the returned
+					// image as currentImage.
+					if (mAllImages != null) {
+						IImage image = mAllImages.getImageForUri(mSavedUri);
+						// image could be null if SD card is removed.
+						if (image == null) {
+							finish();
+						} else {
+							mCurrentPosition = mAllImages.getImageIndex(image);
+							setImage(mCurrentPosition, false);
+						}
+					}
+				}
+				break;
+		}
+	}
+}
+
+class MyViewPager extends ViewPager {
+	public boolean intercept = true;
+
+	public MyViewPager(Context context) {
+		super(context);
+	}
+
+	public MyViewPager(Context context, AttributeSet attrs) {
+		super(context, attrs);
+	}
+
+	@Override
+	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		if (intercept)
+			return super.onInterceptTouchEvent(ev);
+		else
+			return false;
+	}
 }
 
 class ImageViewTouch extends ImageViewTouchBase {
-    private final ViewImage mViewImage;
-    private boolean mEnableTrackballScroll;
+	private final ViewImage mViewImage;
 
-    public ImageViewTouch(Context context) {
-        super(context);
-        mViewImage = (ViewImage) context;
-    }
+	private boolean mEnableTrackballScroll;
 
-    public ImageViewTouch(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        mViewImage = (ViewImage) context;
-    }
+	public ImageViewTouch(Context context) {
+		super(context);
+		mViewImage = (ViewImage)context;
+	}
 
-    public void setEnableTrackballScroll(boolean enable) {
-        mEnableTrackballScroll = enable;
-    }
+	public ImageViewTouch(Context context, AttributeSet attrs) {
+		super(context, attrs);
+		mViewImage = (ViewImage)context;
+	}
 
-    protected void postTranslateCenter(float dx, float dy) {
-        super.postTranslate(dx, dy);
-        center(true, true);
-    }
+	public void setEnableTrackballScroll(boolean enable) {
+		mEnableTrackballScroll = enable;
+	}
 
-    private static final float PAN_RATE = 20;
+	protected void postTranslateCenter(float dx, float dy) {
+		super.postTranslate(dx, dy);
+		center(true, true);
+	}
 
-    // This is the time we allow the dpad to change the image position again.
-    private long mNextChangePositionTime;
+	private static final float PAN_RATE = 20;
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (mViewImage.mPaused) return false;
+	// This is the time we allow the dpad to change the image position again.
+	private long mNextChangePositionTime;
 
-        // Don't respond to arrow keys if trackball scrolling is not enabled
-        if (!mEnableTrackballScroll) {
-            if ((keyCode >= KeyEvent.KEYCODE_DPAD_UP)
-                    && (keyCode <= KeyEvent.KEYCODE_DPAD_RIGHT)) {
-                return super.onKeyDown(keyCode, event);
-            }
-        }
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (mViewImage.mPaused)
+			return false;
 
-        int current = mViewImage.mCurrentPosition;
+		// Don't respond to arrow keys if trackball scrolling is not enabled
+		if (!mEnableTrackballScroll) {
+			if ((keyCode >= KeyEvent.KEYCODE_DPAD_UP) && (keyCode <= KeyEvent.KEYCODE_DPAD_RIGHT)) {
+				return super.onKeyDown(keyCode, event);
+			}
+		}
 
-        int nextImagePos = -2; // default no next image
-        try {
-            switch (keyCode) {
-                case KeyEvent.KEYCODE_DPAD_CENTER: {
-                    if (mViewImage.isPickIntent()) {
-                        IImage img = mViewImage.mAllImages
-                                .getImageAt(mViewImage.mCurrentPosition);
-                        mViewImage.setResult(ViewImage.RESULT_OK,
-                                 new Intent().setData(img.fullSizeImageUri()));
-                        mViewImage.finish();
-                    }
-                    break;
-                }
-                case KeyEvent.KEYCODE_DPAD_LEFT: {
-                    if (getScale() <= 1F && event.getEventTime()
-                            >= mNextChangePositionTime) {
-                        nextImagePos = current - 1;
-                        mNextChangePositionTime = event.getEventTime() + 500;
-                    } else {
-                        panBy(PAN_RATE, 0);
-                        center(true, false);
-                    }
-                    return true;
-                }
-                case KeyEvent.KEYCODE_DPAD_RIGHT: {
-                    if (getScale() <= 1F && event.getEventTime()
-                            >= mNextChangePositionTime) {
-                        nextImagePos = current + 1;
-                        mNextChangePositionTime = event.getEventTime() + 500;
-                    } else {
-                        panBy(-PAN_RATE, 0);
-                        center(true, false);
-                    }
-                    return true;
-                }
-                case KeyEvent.KEYCODE_DPAD_UP: {
-                    panBy(0, PAN_RATE);
-                    center(false, true);
-                    return true;
-                }
-                case KeyEvent.KEYCODE_DPAD_DOWN: {
-                    panBy(0, -PAN_RATE);
-                    center(false, true);
-                    return true;
-                }
-                case KeyEvent.KEYCODE_DEL:
-                    MenuHelper.deletePhoto(
-                            mViewImage, mViewImage.mDeletePhotoRunnable);
-                    break;
-            }
-        } finally {
-            if (nextImagePos >= 0
-                    && nextImagePos < mViewImage.mAllImages.getCount()) {
-                synchronized (mViewImage) {
-                    mViewImage.setMode(ViewImage.MODE_NORMAL);
-                    mViewImage.setImage(nextImagePos, true);
-                }
-           } else if (nextImagePos != -2) {
-               center(true, true);
-           }
-        }
-        return super.onKeyDown(keyCode, event);
-    }
+		int current = mViewImage.mCurrentPosition;
+
+		int nextImagePos = -2; // default no next image
+		try {
+			switch (keyCode) {
+				case KeyEvent.KEYCODE_DPAD_CENTER: {
+					if (mViewImage.isPickIntent()) {
+						IImage img = mViewImage.mAllImages.getImageAt(mViewImage.mCurrentPosition);
+						mViewImage.setResult(ViewImage.RESULT_OK,
+								new Intent().setData(img.fullSizeImageUri()));
+						mViewImage.finish();
+					}
+					break;
+				}
+				case KeyEvent.KEYCODE_DPAD_LEFT: {
+					if (getScale() <= 1F && event.getEventTime() >= mNextChangePositionTime) {
+						nextImagePos = current - 1;
+						mNextChangePositionTime = event.getEventTime() + 500;
+					} else {
+						panBy(PAN_RATE, 0);
+						center(true, false);
+					}
+					return true;
+				}
+				case KeyEvent.KEYCODE_DPAD_RIGHT: {
+					if (getScale() <= 1F && event.getEventTime() >= mNextChangePositionTime) {
+						nextImagePos = current + 1;
+						mNextChangePositionTime = event.getEventTime() + 500;
+					} else {
+						panBy(-PAN_RATE, 0);
+						center(true, false);
+					}
+					return true;
+				}
+				case KeyEvent.KEYCODE_DPAD_UP: {
+					panBy(0, PAN_RATE);
+					center(false, true);
+					return true;
+				}
+				case KeyEvent.KEYCODE_DPAD_DOWN: {
+					panBy(0, -PAN_RATE);
+					center(false, true);
+					return true;
+				}
+				case KeyEvent.KEYCODE_DEL:
+					MenuHelper.deletePhoto(mViewImage, mViewImage.mDeletePhotoRunnable);
+					break;
+			}
+		} finally {
+			if (nextImagePos >= 0 && nextImagePos < mViewImage.mAllImages.getCount()) {
+				synchronized (mViewImage) {
+					mViewImage.setMode(ViewImage.MODE_NORMAL);
+					mViewImage.setImage(nextImagePos, true);
+				}
+			} else if (nextImagePos != -2) {
+				center(true, true);
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
 }
 
 // This is a cache for Bitmap displayed in ViewImage (normal mode, thumb only).
 class BitmapCache implements ImageViewTouchBase.Recycler {
-    public static class Entry {
-        int mPos;
-        Bitmap mBitmap;
-        public Entry() {
-            clear();
-        }
-        public void clear() {
-            mPos = -1;
-            mBitmap = null;
-        }
-    }
+	public static class Entry {
+		int mPos;
+		Bitmap mBitmap;
 
-    private final Entry[] mCache;
+		public Entry() {
+			clear();
+		}
 
-    public BitmapCache(int size) {
-        mCache = new Entry[size];
-        for (int i = 0; i < mCache.length; i++) {
-            mCache[i] = new Entry();
-        }
-    }
+		public void clear() {
+			mPos = -1;
+			mBitmap = null;
+		}
+	}
 
-    // Given the position, find the associated entry. Returns null if there is
-    // no such entry.
-    private Entry findEntry(int pos) {
-        for (Entry e : mCache) {
-            if (pos == e.mPos) {
-                return e;
-            }
-        }
-        return null;
-    }
+	private final Entry[] mCache;
 
-    // Returns the thumb bitmap if we have it, otherwise return null.
-    public synchronized Bitmap getBitmap(int pos) {
-        Entry e = findEntry(pos);
-        if (e != null) {
-            return e.mBitmap;
-        }
-        return null;
-    }
+	public BitmapCache(int size) {
+		mCache = new Entry[size];
+		for (int i = 0; i < mCache.length; i++) {
+			mCache[i] = new Entry();
+		}
+	}
 
-    public synchronized void put(int pos, Bitmap bitmap) {
-        // First see if we already have this entry.
-        if (findEntry(pos) != null) {
-            return;
-        }
+	// Given the position, find the associated entry. Returns null if there is
+	// no such entry.
+	private Entry findEntry(int pos) {
+		for (Entry e : mCache) {
+			if (pos == e.mPos) {
+				return e;
+			}
+		}
+		return null;
+	}
 
-        // Find the best entry we should replace.
-        // See if there is any empty entry.
-        // Otherwise assuming sequential access, kick out the entry with the
-        // greatest distance.
-        Entry best = null;
-        int maxDist = -1;
-        for (Entry e : mCache) {
-            if (e.mPos == -1) {
-                best = e;
-                break;
-            } else {
-                int dist = Math.abs(pos - e.mPos);
-                if (dist > maxDist) {
-                    maxDist = dist;
-                    best = e;
-                }
-            }
-        }
+	// Returns the thumb bitmap if we have it, otherwise return null.
+	public synchronized Bitmap getBitmap(int pos) {
+		Entry e = findEntry(pos);
+		if (e != null) {
+			return e.mBitmap;
+		}
+		return null;
+	}
 
-        // Recycle the image being kicked out.
-        // This only works because our current usage is sequential, so we
-        // do not happen to recycle the image being displayed.
-        if (best.mBitmap != null) {
-            best.mBitmap.recycle();
-        }
+	public synchronized void put(int pos, Bitmap bitmap) {
+		// First see if we already have this entry.
+		if (findEntry(pos) != null) {
+			return;
+		}
 
-        best.mPos = pos;
-        best.mBitmap = bitmap;
-    }
+		// Find the best entry we should replace.
+		// See if there is any empty entry.
+		// Otherwise assuming sequential access, kick out the entry with the
+		// greatest distance.
+		Entry best = null;
+		int maxDist = -1;
+		for (Entry e : mCache) {
+			if (e.mPos == -1) {
+				best = e;
+				break;
+			} else {
+				int dist = Math.abs(pos - e.mPos);
+				if (dist > maxDist) {
+					maxDist = dist;
+					best = e;
+				}
+			}
+		}
 
-    // Recycle all bitmaps in the cache and clear the cache.
-    public synchronized void clear() {
-        for (Entry e : mCache) {
-            if (e.mBitmap != null) {
-                e.mBitmap.recycle();
-            }
-            e.clear();
-        }
-    }
+		// Recycle the image being kicked out.
+		// This only works because our current usage is sequential, so we
+		// do not happen to recycle the image being displayed.
+		if (best.mBitmap != null) {
+			best.mBitmap.recycle();
+		}
 
-    // Returns whether the bitmap is in the cache.
-    public synchronized boolean hasBitmap(int pos) {
-        Entry e = findEntry(pos);
-        return (e != null);
-    }
+		best.mPos = pos;
+		best.mBitmap = bitmap;
+	}
 
-    // Recycle the bitmap if it's not in the cache.
-    // The input must be non-null.
-    public synchronized void recycle(Bitmap b) {
-        for (Entry e : mCache) {
-            if (e.mPos != -1) {
-                if (e.mBitmap == b) {
-                    return;
-                }
-            }
-        }
-        b.recycle();
-    }
+	// Recycle all bitmaps in the cache and clear the cache.
+	public synchronized void clear() {
+		for (Entry e : mCache) {
+			if (e.mBitmap != null) {
+				e.mBitmap.recycle();
+			}
+			e.clear();
+		}
+	}
+
+	// Returns whether the bitmap is in the cache.
+	public synchronized boolean hasBitmap(int pos) {
+		Entry e = findEntry(pos);
+		return (e != null);
+	}
+
+	// Recycle the bitmap if it's not in the cache.
+	// The input must be non-null.
+	public synchronized void recycle(Bitmap b) {
+		for (Entry e : mCache) {
+			if (e.mPos != -1) {
+				if (e.mBitmap == b) {
+					return;
+				}
+			}
+		}
+		b.recycle();
+	}
 }

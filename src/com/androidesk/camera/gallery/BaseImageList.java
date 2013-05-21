@@ -31,11 +31,8 @@ import com.androidesk.camera.Util;
 /**
  * A collection of <code>BaseImage</code>s.
  */
-public abstract class BaseImageList implements IImageList {
+public abstract class BaseImageList extends CachedImageList {
 	private static final String TAG = "BaseImageList";
-	private static final int CACHE_CAPACITY = 512;
-	private final LruCache<Integer, BaseImage> mCache = new LruCache<Integer, BaseImage>(
-			CACHE_CAPACITY);
 
 	protected ContentResolver mContentResolver;
 	protected int mSort;
@@ -47,6 +44,8 @@ public abstract class BaseImageList implements IImageList {
 
 	public BaseImageList(ContentResolver resolver, Uri uri, int sort,
 			String bucketId) {
+		super();
+		
 		mSort = sort;
 		mBaseUri = uri;
 		mBucketId = bucketId;
@@ -56,11 +55,6 @@ public abstract class BaseImageList implements IImageList {
 		if (mCursor == null) {
 			Log.w(TAG, "createCursor returns null.");
 		}
-
-		// TODO: We need to clear the cache because we may "reopen" the image
-		// list. After we implement the image list state, we can remove this
-		// kind of usage.
-		mCache.clear();
 	}
 
 	public void close() {
@@ -119,7 +113,7 @@ public abstract class BaseImageList implements IImageList {
 	}
 
 	public IImage getImageAt(int i) {
-		BaseImage result = mCache.get(i);
+		IImage result = super.getImageAt(i);
 		if (result == null) {
 			Cursor cursor = getCursor();
 			if (cursor == null)
@@ -127,7 +121,7 @@ public abstract class BaseImageList implements IImageList {
 			synchronized (this) {
 				result = cursor.moveToPosition(i) ? loadImageFromCursor(cursor)
 						: null;
-				mCache.put(i, result);
+				cache(i, result);
 			}
 		}
 		return result;
@@ -161,10 +155,6 @@ public abstract class BaseImageList implements IImageList {
 			return;
 		mCursor.deactivate();
 		mCursorDeactivated = true;
-	}
-
-	protected void invalidateCache() {
-		mCache.clear();
 	}
 
 	private static final Pattern sPathWithId = Pattern.compile("(.*)/\\d+");
@@ -206,10 +196,10 @@ public abstract class BaseImageList implements IImageList {
 			cursor.moveToPosition(-1); // before first
 			for (int i = 0; cursor.moveToNext(); ++i) {
 				if (getImageId(cursor) == matchId) {
-					BaseImage image = mCache.get(i);
+					IImage image = getCache(i);
 					if (image == null) {
 						image = loadImageFromCursor(cursor);
-						mCache.put(i, image);
+						cache(i, image);
 					}
 					return image;
 				}

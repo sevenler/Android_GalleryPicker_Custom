@@ -18,6 +18,7 @@ package com.androidesk.camera;
 
 import static com.androidesk.camera.Util.Assert;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 import android.annotation.TargetApi;
@@ -858,10 +859,13 @@ class ImageBlockManager {
 		for (int pos : tags) {
 			int row = pos / mColumns;
 			int col = pos - row * mColumns;
+			
 			ImageBlock blk = mCache.get(row);
-			Assert(blk != null); // We won't reuse the block if it has pending
+			//Assert(blk != null); // We won't reuse the block if it has pending
 									// requests. See getEmptyBlock().
-			blk.cancelRequest(col);
+			//TODO 这个地方原来是 assert(blk != null)则异常的
+			if(blk != null)
+				blk.cancelRequest(col);
 		}
 	}
 
@@ -1117,6 +1121,7 @@ class ImageBlockManager {
 							});
 						}
 					};
+					
 					// Load Image
 					mLoader.getBitmap(image, cb, pos);
 					mRequestedMask |= (1 << col);

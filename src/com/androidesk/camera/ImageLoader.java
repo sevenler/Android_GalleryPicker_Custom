@@ -23,6 +23,7 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 
 import com.androidesk.camera.gallery.IImage;
+import com.androidesk.camera.gallery.UrlImage;
 
 /**
  * A dedicated decoding thread used by ImageGallery.
@@ -43,11 +44,11 @@ public class ImageLoader {
 		public void run(Bitmap result);
 	}
 
-	public void getBitmap(IImage image, LoadedCallback imageLoadedRunnable,
-			int tag) {
+	public void getBitmap(IImage image, LoadedCallback imageLoadedRunnable, int tag) {
 		if (mDecodeThread == null) {
 			start();
 		}
+
 		synchronized (mQueue) {
 			WorkItem w = new WorkItem(image, imageLoadedRunnable, tag);
 			mQueue.add(w);
@@ -131,7 +132,10 @@ public class ImageLoader {
 					}
 				}
 
-				final Bitmap b = workItem.mImage.miniThumbBitmap();
+				//网络数据请求thumbBitmap
+				IImage image = workItem.mImage;
+				final Bitmap b = ((image instanceof UrlImage) ? image.thumbBitmap(false) : image
+						.miniThumbBitmap());
 
 				if (workItem.mOnLoadedRunnable != null) {
 					workItem.mOnLoadedRunnable.run(b);

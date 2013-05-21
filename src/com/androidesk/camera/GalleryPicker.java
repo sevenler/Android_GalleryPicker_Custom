@@ -18,6 +18,7 @@ package com.androidesk.camera;
 
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
+import com.androidesk.camera.gallery.UrlImageList;
 import com.androidesk.gallery.R;
 
 
@@ -331,7 +332,7 @@ public class GalleryPicker extends NoSearchActivity {
     }
 
     // This is run in the worker thread.
-    private void workerRun() {
+    protected void workerRun() {
         // We collect items from checkImageList() and checkBucketIds() and
         // put them in allItems. Later we give allItems to checkThumbBitmap()
         // and generated thumbnail bitmaps for each item. We do this instead of
@@ -410,7 +411,7 @@ public class GalleryPicker extends NoSearchActivity {
     }
 
     // This is run in the main thread.
-    private void updateItem(Item item) {
+    protected void updateItem(Item item) {
         // Hide NoImageView if we are going to add the first item
         if (mAdapter.getCount() == 0) {
             hideNoImagesView();
@@ -479,7 +480,7 @@ public class GalleryPicker extends NoSearchActivity {
     }
 
     // This is run in the main thread.
-    private void checkBucketIdsFinished() {
+    protected void checkBucketIdsFinished() {
 
         // If we just have one folder, open it.
         // If we have zero folder, show the "no images" icon.
@@ -497,23 +498,26 @@ public class GalleryPicker extends NoSearchActivity {
 
     private static final int THUMB_SIZE = 142;
     // This is run in the worker thread.
-    private void checkThumbBitmap(ArrayList<Item> allItems) {
+    protected void checkThumbBitmap(ArrayList<Item> allItems) {
         for (Item item : allItems) {
-            final Bitmap b = makeMiniThumbBitmap(THUMB_SIZE, THUMB_SIZE,
-                    item.mImageList);
-            if (mAbort) {
-                if (b != null) b.recycle();
-                return;
-            }
-
-            final Item finalItem = item;
-            mHandler.post(new Runnable() {
-                        public void run() {
-                            updateThumbBitmap(finalItem, b);
-                        }
-                    });
+        	checkThumbBitmap(item);
         }
     }
+    
+	protected void checkThumbBitmap(Item item) {
+		final Bitmap b = makeMiniThumbBitmap(THUMB_SIZE, THUMB_SIZE, item.mImageList);
+		if (mAbort) {
+			if (b != null) b.recycle();
+			return;
+		}
+
+		final Item finalItem = item;
+		mHandler.post(new Runnable() {
+			public void run() {
+				updateThumbBitmap(finalItem, b);
+			}
+		});
+	}
 
     // This is run in the main thread.
     private void updateThumbBitmap(Item item, Bitmap b) {
@@ -524,7 +528,7 @@ public class GalleryPicker extends NoSearchActivity {
     private static final long LOW_STORAGE_THRESHOLD = 1024 * 1024 * 2;
 
     // This is run in the worker thread.
-    private void checkLowStorage() {
+    protected void checkLowStorage() {
         // Check available space only if we are writable
         if (ImageManager.hasStorage()) {
             String storageDirectory = Environment
@@ -786,6 +790,7 @@ class Item {
     public static final int TYPE_CAMERA_VIDEOS = 3;
     public static final int TYPE_CAMERA_MEDIAS = 4;
     public static final int TYPE_NORMAL_FOLDERS = 5;
+    public static final int TYPE_NORMAL_HTTP = 6;
 
     public final int mType;
     public final String mBucketId;
@@ -826,8 +831,13 @@ class Item {
             uri = uri.buildUpon()
                     .appendQueryParameter("bucketId", mBucketId).build();
         }
+		if (mType == TYPE_NORMAL_HTTP) {
+			UrlImageList images = (UrlImageList)mImageList;
+			uri = images.getUri();
+		}
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.putExtra("windowTitle", mName);
+        intent.putExtra("classId", mBucketId);
         intent.putExtra("mediaTypes", getIncludeMediaTypes());
         activity.startActivity(intent);
     }

@@ -6,6 +6,7 @@
     <original-package android:name="com.androidesk.gallery" />
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature
@@ -22,10 +23,10 @@
     <application
         android:icon="@drawable/indicator_autocrop"
         android:label="@string/camera_label"
-        android:theme="@style/AppTheme"
-        android:taskAffinity="" >
+        android:taskAffinity=""
+        android:theme="@style/AppTheme" >
         <activity
-            android:name="com.androidesk.camera.GalleryPicker"
+            android:name="com.androidesk.camera.HttpGalleryPicker"
             android:clearTaskOnLaunch="true"
             android:configChanges="orientation|keyboardHidden"
             android:icon="@drawable/ic_launcher_gallery"
@@ -39,12 +40,27 @@
             </intent-filter>
         </activity>
         <activity
+            android:name="com.androidesk.camera.GalleryPicker"
+            android:clearTaskOnLaunch="true"
+            android:configChanges="orientation|keyboardHidden"
+            android:icon="@drawable/ic_launcher_gallery"
+            android:label="@string/gallery_picker_label"
+            android:taskAffinity="android.task.pictures" >
+        </activity>
+        <activity
             android:name="com.androidesk.camera.ImageGallery"
             android:configChanges="orientation|keyboardHidden"
             android:icon="@drawable/ic_launcher_gallery"
             android:label="@string/gallery_label" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <data android:scheme="http" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

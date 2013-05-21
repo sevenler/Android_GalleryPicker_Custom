@@ -61,6 +61,7 @@ import android.widget.Toast;
 
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
+import com.androidesk.camera.gallery.UrlImageList;
 import com.androidesk.camera.gallery.VideoObject;
 import com.androidesk.gallery.R;
 
@@ -388,8 +389,11 @@ public class ImageGallery extends NoSearchActivity implements
 					getResources().getString(R.string.wait), true, true);
 		}
 
-		mParam = allImages(!unmounted && !scanning);
-		mAllImages = ImageManager.makeImageList(getContentResolver(), mParam);
+		mAllImages = checkHttpDataIfNeed();
+		if (mAllImages == null) {
+			mParam = allImages(!unmounted && !scanning);
+			mAllImages = ImageManager.makeImageList(getContentResolver(), mParam);
+		}
 
 		mGvs.setImageList(mAllImages);
 		mGvs.setDrawAdapter(this);
@@ -397,6 +401,17 @@ public class ImageGallery extends NoSearchActivity implements
 		mGvs.start();
 		mNoImagesView.setVisibility(mAllImages.getCount() > 0 ? View.GONE
 				: View.VISIBLE);
+	}
+	
+	private String mClassId;
+	private IImageList checkHttpDataIfNeed() {
+		Intent intent = getIntent();
+		Uri uri = intent.getData();
+		String cid = intent.getExtras().getString("classId");
+		mClassId = cid;
+		if ("http".equals(uri.getScheme())) {
+			return new UrlImageList(this, UrlImageList.LOCATION_CATALOG, cid, 90);
+		} else return null;
 	}
 
 	@Override
@@ -646,6 +661,7 @@ public class ImageGallery extends NoSearchActivity implements
 			} else {
 				intent = new Intent(this, ViewImage.class);
 				intent.putExtra(ViewImage.KEY_IMAGE_LIST, mParam);
+				intent.putExtra("classId", mClassId);
 				intent.setData(image.fullSizeImageUri());
 			}
 			startActivity(intent);

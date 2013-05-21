@@ -27,8 +27,12 @@ import android.net.Uri;
 public interface IImage {
 	static final int THUMBNAIL_TARGET_SIZE = 320;
 	static final int MINI_THUMB_TARGET_SIZE = 96;
-	static final int THUMBNAIL_MAX_NUM_PIXELS = 512 * 384;
-	static final int MINI_THUMB_MAX_NUM_PIXELS = 128 * 128;
+	static final int THUMBNAIL_MAX_NUM_PIXELS_WIDTH = 512;
+	static final int THUMBNAIL_MAX_NUM_PIXELS_HEIGHT = 384;
+	static final int MINI_THUMB_MAX_NUM_PIXELS_WIDTH = 128;
+	static final int MINI_THUMB_MAX_NUM_PIXELS_HEIGHT = 128;
+	static final int THUMBNAIL_MAX_NUM_PIXELS = THUMBNAIL_MAX_NUM_PIXELS_WIDTH * THUMBNAIL_MAX_NUM_PIXELS_HEIGHT;
+	static final int MINI_THUMB_MAX_NUM_PIXELS = MINI_THUMB_MAX_NUM_PIXELS_WIDTH * MINI_THUMB_MAX_NUM_PIXELS_HEIGHT;
 	static final int UNCONSTRAINED = -1;
 
 	/** Get the image list which contains this image. */

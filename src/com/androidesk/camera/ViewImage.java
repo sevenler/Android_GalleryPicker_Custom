@@ -51,6 +51,8 @@ import android.widget.Toast;
 
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
+import com.androidesk.camera.gallery.UrlImage;
+import com.androidesk.camera.gallery.UrlImageList;
 import com.androidesk.camera.gallery.VideoObject;
 import com.androidesk.gallery.R;
 
@@ -880,14 +882,26 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	private boolean init(Uri uri) {
 		if (uri == null)
 			return false;
-		mAllImages = (mParam == null) ? buildImageListFromUri(uri) : ImageManager.makeImageList(
-				getContentResolver(), mParam);
+		mAllImages = checkHttpDataIfNeed(uri);
+		if (mAllImages == null)
+			mAllImages = (mParam == null) ? buildImageListFromUri(uri) : ImageManager
+					.makeImageList(getContentResolver(), mParam);
+			
 		IImage image = mAllImages.getImageForUri(uri);
 		if (image == null)
 			return false;
 		mCurrentPosition = mAllImages.getImageIndex(image);
 		mLastSlideShowImage = mCurrentPosition;
 		return true;
+	}
+	
+	private IImageList checkHttpDataIfNeed(Uri uri) {
+		String cid = getIntent().getExtras().getString("classId");
+		if ("http".equals(uri.getScheme())) {
+			IImageList images = new UrlImageList(this, UrlImageList.LOCATION_CATALOG, cid, 90);
+			return images;
+		}
+		return null;
 	}
 
 	private Uri getCurrentUri() {
@@ -963,7 +977,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 		}
 
 		hideOnScreenControls();
-		mImageView.clear();
+		if(mImageView != null) mImageView.clear();
 		mCache.clear();
 
 		for (ImageViewTouchBase iv : mSlideShowImageViews) {

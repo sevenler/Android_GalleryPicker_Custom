@@ -304,7 +304,7 @@ public class ImageManager {
 		boolean haveSdCard = hasStorage(false);
 
 		// use this code to merge videos and stills into the same list
-		ArrayList<BaseImageList> l = new ArrayList<BaseImageList>();
+		ArrayList<IImageList> l = new ArrayList<IImageList>();
 
 		if (haveSdCard && location != DataLocation.INTERNAL) {
 			if ((inclusion & INCLUDE_IMAGES) != 0) {
@@ -326,9 +326,9 @@ public class ImageManager {
 
 		// Optimization: If some of the lists are empty, remove them.
 		// If there is only one remaining list, return it directly.
-		Iterator<BaseImageList> iter = l.iterator();
+		Iterator<IImageList> iter = l.iterator();
 		while (iter.hasNext()) {
-			BaseImageList sublist = iter.next();
+			IImageList sublist = iter.next();
 			if (sublist.isEmpty()) {
 				sublist.close();
 				iter.remove();
@@ -336,7 +336,7 @@ public class ImageManager {
 		}
 
 		if (l.size() == 1) {
-			BaseImageList list = l.get(0);
+			IImageList list = l.get(0);
 			return list;
 		}
 

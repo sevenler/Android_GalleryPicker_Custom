@@ -77,22 +77,19 @@ class UriImage implements IImage {
 	}
 
 	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels) {
-		return fullSizeBitmap(minSideLength, maxNumberOfPixels,
-				IImage.ROTATE_AS_NEEDED, IImage.NO_NATIVE);
-	}
-
-	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels,
-			boolean rotateAsNeeded) {
-		return fullSizeBitmap(minSideLength, maxNumberOfPixels, rotateAsNeeded,
+		return fullSizeBitmap(minSideLength, maxNumberOfPixels, IImage.ROTATE_AS_NEEDED,
 				IImage.NO_NATIVE);
 	}
 
-	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels,
-			boolean rotateAsNeeded, boolean useNative) {
+	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels, boolean rotateAsNeeded) {
+		return fullSizeBitmap(minSideLength, maxNumberOfPixels, rotateAsNeeded, IImage.NO_NATIVE);
+	}
+
+	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels, boolean rotateAsNeeded,
+			boolean useNative) {
 		try {
 			ParcelFileDescriptor pfdInput = getPFD();
-			Bitmap b = Util.makeBitmap(minSideLength, maxNumberOfPixels,
-					pfdInput, useNative);
+			Bitmap b = Util.makeBitmap(minSideLength, maxNumberOfPixels, pfdInput, useNative);
 			return b;
 		} catch (Exception ex) {
 			Log.e(TAG, "got exception decoding bitmap ", ex);
@@ -117,19 +114,16 @@ class UriImage implements IImage {
 	}
 
 	public Bitmap thumbBitmap(boolean rotateAsNeeded) {
-		return fullSizeBitmap(THUMBNAIL_TARGET_SIZE, THUMBNAIL_MAX_NUM_PIXELS,
-				rotateAsNeeded);
+		return fullSizeBitmap(THUMBNAIL_TARGET_SIZE, THUMBNAIL_MAX_NUM_PIXELS, rotateAsNeeded);
 	}
 
 	private BitmapFactory.Options snifBitmapOptions() {
 		ParcelFileDescriptor input = getPFD();
-		if (input == null)
-			return null;
+		if (input == null) return null;
 		try {
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
-			BitmapManager.instance().decodeFileDescriptor(
-					input.getFileDescriptor(), options);
+			BitmapManager.instance().decodeFileDescriptor(input.getFileDescriptor(), options);
 			return options;
 		} finally {
 			Util.closeSilently(input);
@@ -138,8 +132,7 @@ class UriImage implements IImage {
 
 	public String getMimeType() {
 		BitmapFactory.Options options = snifBitmapOptions();
-		return (options != null && options.outMimeType != null) ? options.outMimeType
-				: "";
+		return (options != null && options.outMimeType != null) ? options.outMimeType : "";
 	}
 
 	public int getHeight() {

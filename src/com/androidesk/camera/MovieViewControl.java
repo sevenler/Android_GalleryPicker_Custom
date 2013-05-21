@@ -77,7 +77,7 @@ public class MovieViewControl implements MediaPlayer.OnErrorListener,
 
 	public MovieViewControl(View rootView, Context context, Uri videoUri) {
 		mContentResolver = context.getContentResolver();
-		mVideoView = (VideoView) rootView.findViewById(R.id.surface_view);
+		mVideoView = (VideoView)rootView.findViewById(R.id.surface_view);
 		mProgressView = rootView.findViewById(R.id.progress_indicator);
 
 		mUri = videoUri;
@@ -108,27 +108,24 @@ public class MovieViewControl implements MediaPlayer.OnErrorListener,
 		if (bookmark != null) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(context);
 			builder.setTitle(R.string.resume_playing_title);
-			builder.setMessage(String.format(
-					context.getString(R.string.resume_playing_message),
+			builder.setMessage(String.format(context.getString(R.string.resume_playing_message),
 					MenuHelper.formatDuration(context, bookmark)));
 			builder.setOnCancelListener(new OnCancelListener() {
 				public void onCancel(DialogInterface dialog) {
 					onCompletion();
 				}
 			});
-			builder.setPositiveButton(R.string.resume_playing_resume,
-					new OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							mVideoView.seekTo(bookmark);
-							mVideoView.start();
-						}
-					});
-			builder.setNegativeButton(R.string.resume_playing_restart,
-					new OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							mVideoView.start();
-						}
-					});
+			builder.setPositiveButton(R.string.resume_playing_resume, new OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					mVideoView.seekTo(bookmark);
+					mVideoView.start();
+				}
+			});
+			builder.setNegativeButton(R.string.resume_playing_restart, new OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					mVideoView.start();
+				}
+			});
 			builder.show();
 		} else {
 			mVideoView.start();
@@ -151,15 +148,13 @@ public class MovieViewControl implements MediaPlayer.OnErrorListener,
 				Video.VideoColumns.BOOKMARK };
 
 		try {
-			Cursor cursor = mContentResolver.query(mUri, projection, null,
-					null, null);
+			Cursor cursor = mContentResolver.query(mUri, projection, null, null, null);
 			if (cursor != null) {
 				try {
 					if (cursor.moveToFirst()) {
 						int duration = getCursorInteger(cursor, 0);
 						int bookmark = getCursorInteger(cursor, 1);
-						if ((bookmark < TWO_MINUTES)
-								|| (duration < FIVE_MINUTES)
+						if ((bookmark < TWO_MINUTES) || (duration < FIVE_MINUTES)
 								|| (bookmark > (duration - ONE_MINUTE))) {
 							return null;
 						}

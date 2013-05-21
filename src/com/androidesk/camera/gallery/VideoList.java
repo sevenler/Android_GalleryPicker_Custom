@@ -32,9 +32,9 @@ public class VideoList extends BaseImageList {
 	@SuppressWarnings("unused")
 	private static final String TAG = "BaseImageList";
 
-	private static final String[] VIDEO_PROJECTION = new String[] { Media._ID,
-			Media.DATA, Media.DATE_TAKEN, Media.TITLE, Media.MINI_THUMB_MAGIC,
-			Media.MIME_TYPE, Media.DATE_MODIFIED };
+	private static final String[] VIDEO_PROJECTION = new String[] { Media._ID, Media.DATA,
+			Media.DATE_TAKEN, Media.TITLE, Media.MINI_THUMB_MAGIC, Media.MIME_TYPE,
+			Media.DATE_MODIFIED };
 
 	private static final int INDEX_ID = 0;
 	private static final int INDEX_DATA_PATH = 1;
@@ -63,22 +63,19 @@ public class VideoList extends BaseImageList {
 		if (title == null || title.length() == 0) {
 			title = dataPath;
 		}
-		return new VideoObject(this, mContentResolver, id,
-				cursor.getPosition(), contentUri(id), dataPath, mimeType,
-				dateTaken, title);
+		return new VideoObject(this, mContentResolver, id, cursor.getPosition(), contentUri(id),
+				dataPath, mimeType, dateTaken, title);
 	}
 
-	public VideoList(ContentResolver resolver, Uri uri, int sort,
-			String bucketId) {
+	public VideoList(ContentResolver resolver, Uri uri, int sort, String bucketId) {
 		super(resolver, uri, sort, bucketId);
 	}
 
 	public HashMap<String, String> getBucketIds() {
-		Uri uri = mBaseUri.buildUpon().appendQueryParameter("distinct", "true")
-				.build();
+		Uri uri = mBaseUri.buildUpon().appendQueryParameter("distinct", "true").build();
 		Cursor c = Images.Media.query(mContentResolver, uri, new String[] {
-				Media.BUCKET_DISPLAY_NAME, Media.BUCKET_ID }, whereClause(),
-				whereClauseArgs(), sortOrder());
+				Media.BUCKET_DISPLAY_NAME, Media.BUCKET_ID }, whereClause(), whereClauseArgs(),
+				sortOrder());
 		try {
 			HashMap<String, String> hash = new HashMap<String, String>();
 			while (c.moveToNext()) {
@@ -91,8 +88,7 @@ public class VideoList extends BaseImageList {
 	}
 
 	protected String whereClause() {
-		return mBucketId != null ? Images.Media.BUCKET_ID + " = '" + mBucketId
-				+ "'" : null;
+		return mBucketId != null ? Images.Media.BUCKET_ID + " = '" + mBucketId + "'" : null;
 	}
 
 	protected String[] whereClauseArgs() {
@@ -101,9 +97,8 @@ public class VideoList extends BaseImageList {
 
 	@Override
 	protected Cursor createCursor() {
-		Cursor c = Images.Media
-				.query(mContentResolver, mBaseUri, VIDEO_PROJECTION,
-						whereClause(), whereClauseArgs(), sortOrder());
+		Cursor c = Images.Media.query(mContentResolver, mBaseUri, VIDEO_PROJECTION, whereClause(),
+				whereClauseArgs(), sortOrder());
 		return c;
 	}
 }

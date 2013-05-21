@@ -62,8 +62,7 @@ public class ActionMenuButton extends TextView {
 		setPadding(PADDING_H, 0, PADDING_H, PADDING_V);
 
 		mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mPaint.setColor(getContext().getResources().getColor(
-				R.color.bubble_dark_background));
+		mPaint.setColor(getContext().getResources().getColor(R.color.bubble_dark_background));
 	}
 
 	@Override
@@ -84,8 +83,7 @@ public class ActionMenuButton extends TextView {
 		rect.set(
 				left + layout.getLineLeft(0) - PADDING_H,
 				top + layout.getLineTop(0) - PADDING_V,
-				Math.min(left + layout.getLineRight(0) + PADDING_H, scaleX
-						+ getRight() - getLeft()),
+				Math.min(left + layout.getLineRight(0) + PADDING_H, scaleX + getRight() - getLeft()),
 				top + layout.getLineBottom(0) + PADDING_V);
 		canvas.drawRoundRect(rect, CORNER_RADIUS, CORNER_RADIUS, mPaint);
 

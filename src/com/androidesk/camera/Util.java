@@ -218,8 +218,7 @@ public class Util {
 	}
 
 	public static void closeSilently(Closeable c) {
-		if (c == null)
-			return;
+		if (c == null) return;
 		try {
 			c.close();
 		} catch (Throwable t) {
@@ -228,8 +227,7 @@ public class Util {
 	}
 
 	public static void closeSilently(ParcelFileDescriptor c) {
-		if (c == null)
-			return;
+		if (c == null) return;
 		try {
 			c.close();
 		} catch (Throwable t) {
@@ -271,12 +269,9 @@ public class Util {
 	public static Bitmap makeBitmap(int minSideLength, int maxNumOfPixels, Uri uri,
 			ContentResolver cr, ParcelFileDescriptor pfd, BitmapFactory.Options options) {
 		try {
-			if (pfd == null)
-				pfd = makeInputStream(uri, cr);
-			if (pfd == null)
-				return null;
-			if (options == null)
-				options = new BitmapFactory.Options();
+			if (pfd == null) pfd = makeInputStream(uri, cr);
+			if (pfd == null) return null;
+			if (options == null) options = new BitmapFactory.Options();
 
 			FileDescriptor fd = pfd.getFileDescriptor();
 			options.inJustDecodeBounds = true;
@@ -341,8 +336,7 @@ public class Util {
 		private final Runnable mCleanupRunner = new Runnable() {
 			public void run() {
 				mActivity.removeLifeCycleListener(BackgroundJob.this);
-				if (mDialog.getWindow() != null)
-					mDialog.dismiss();
+				if (mDialog.getWindow() != null) mDialog.dismiss();
 			}
 		};
 

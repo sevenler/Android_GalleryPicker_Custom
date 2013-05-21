@@ -49,8 +49,7 @@ public class MonitoredActivity extends NoSearchActivity {
 	}
 
 	public void addLifeCycleListener(LifeCycleListener listener) {
-		if (mListeners.contains(listener))
-			return;
+		if (mListeners.contains(listener)) return;
 		mListeners.add(listener);
 	}
 

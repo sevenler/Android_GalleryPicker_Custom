@@ -52,15 +52,13 @@ public class MovieView extends NoSearchActivity {
 			}
 		};
 		if (intent.hasExtra(MediaStore.EXTRA_SCREEN_ORIENTATION)) {
-			int orientation = intent.getIntExtra(
-					MediaStore.EXTRA_SCREEN_ORIENTATION,
+			int orientation = intent.getIntExtra(MediaStore.EXTRA_SCREEN_ORIENTATION,
 					ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 			if (orientation != getRequestedOrientation()) {
 				setRequestedOrientation(orientation);
 			}
 		}
-		mFinishOnCompletion = intent.getBooleanExtra(
-				MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
+		mFinishOnCompletion = intent.getBooleanExtra(MediaStore.EXTRA_FINISH_ON_COMPLETION, true);
 	}
 
 	@Override

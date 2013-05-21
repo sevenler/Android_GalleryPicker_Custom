@@ -61,8 +61,7 @@ public interface IImageList {
 	/**
 	 * Returns the image at the ith position.
 	 * 
-	 * @param i
-	 *            the position
+	 * @param i the position
 	 * @return the image at the ith position
 	 */
 	public IImage getImageAt(int i);
@@ -76,7 +75,6 @@ public interface IImageList {
 	public IImage getImageForUri(Uri uri);
 
 	/**
-	 * 
 	 * @param image
 	 * @return true if the image was removed.
 	 */
@@ -85,8 +83,7 @@ public interface IImageList {
 	/**
 	 * Removes the image at the ith position.
 	 * 
-	 * @param i
-	 *            the position
+	 * @param i the position
 	 */
 	public boolean removeImageAt(int i);
 

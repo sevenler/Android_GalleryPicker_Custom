@@ -29,13 +29,11 @@ import android.provider.MediaStore.Video;
 import android.util.Log;
 
 /**
- * This class provides several utilities to cancel bitmap decoding.
- * 
- * The function decodeFileDescriptor() is used to decode a bitmap. During
- * decoding if another thread wants to cancel it, it calls the function
- * cancelThreadDecoding() specifying the Thread which is in decoding.
- * 
- * cancelThreadDecoding() is sticky until allowThreadDecoding() is called.
+ * This class provides several utilities to cancel bitmap decoding. The function
+ * decodeFileDescriptor() is used to decode a bitmap. During decoding if another
+ * thread wants to cancel it, it calls the function cancelThreadDecoding()
+ * specifying the Thread which is in decoding. cancelThreadDecoding() is sticky
+ * until allowThreadDecoding() is called.
  */
 public class BitmapManager {
 	private static final String TAG = "BitmapManager";
@@ -87,8 +85,7 @@ public class BitmapManager {
 	 * The following three methods are used to keep track of
 	 * BitmapFaction.Options used for decoding and cancelling.
 	 */
-	private synchronized void setDecodingOptions(Thread t,
-			BitmapFactory.Options options) {
+	private synchronized void setDecodingOptions(Thread t, BitmapFactory.Options options) {
 		getOrCreateThreadStatus(t).mOptions = options;
 	}
 
@@ -135,10 +132,8 @@ public class BitmapManager {
 			synchronized (status) {
 				while (status.mThumbRequesting) {
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-						Images.Thumbnails.cancelThumbnailRequest(cr, -1,
-								t.getId());
-						Video.Thumbnails.cancelThumbnailRequest(cr, -1,
-								t.getId());
+						Images.Thumbnails.cancelThumbnailRequest(cr, -1, t.getId());
+						Video.Thumbnails.cancelThumbnailRequest(cr, -1, t.getId());
 					}
 					status.wait(200);
 				}
@@ -163,11 +158,9 @@ public class BitmapManager {
 				status.mThumbRequesting = true;
 			}
 			if (isVideo) {
-				return Video.Thumbnails.getThumbnail(cr, origId, t.getId(),
-						kind, null);
+				return Video.Thumbnails.getThumbnail(cr, origId, t.getId(), kind, null);
 			} else {
-				return Images.Thumbnails.getThumbnail(cr, origId, t.getId(),
-						kind, null);
+				return Images.Thumbnails.getThumbnail(cr, origId, t.getId(), kind, null);
 			}
 		} finally {
 			synchronized (status) {
@@ -187,8 +180,7 @@ public class BitmapManager {
 	/**
 	 * The real place to delegate bitmap decoding to BitmapFactory.
 	 */
-	public Bitmap decodeFileDescriptor(FileDescriptor fd,
-			BitmapFactory.Options options) {
+	public Bitmap decodeFileDescriptor(FileDescriptor fd, BitmapFactory.Options options) {
 		if (options.mCancel) {
 			return null;
 		}

@@ -42,10 +42,9 @@ public abstract class BaseImageList extends CachedImageList {
 	protected String mBucketId;
 	protected boolean mCursorDeactivated = false;
 
-	public BaseImageList(ContentResolver resolver, Uri uri, int sort,
-			String bucketId) {
+	public BaseImageList(ContentResolver resolver, Uri uri, int sort, String bucketId) {
 		super();
-		
+
 		mSort = sort;
 		mBaseUri = uri;
 		mBucketId = bucketId;
@@ -78,8 +77,7 @@ public abstract class BaseImageList extends CachedImageList {
 			// does our uri already have an id (single image query)?
 			// if so just return it
 			long existingId = ContentUris.parseId(mBaseUri);
-			if (existingId != id)
-				Log.e(TAG, "id mismatch");
+			if (existingId != id) Log.e(TAG, "id mismatch");
 			return mBaseUri;
 		} catch (NumberFormatException ex) {
 			// otherwise tack on the id
@@ -89,8 +87,7 @@ public abstract class BaseImageList extends CachedImageList {
 
 	public int getCount() {
 		Cursor cursor = getCursor();
-		if (cursor == null)
-			return 0;
+		if (cursor == null) return 0;
 		synchronized (this) {
 			return cursor.getCount();
 		}
@@ -102,8 +99,7 @@ public abstract class BaseImageList extends CachedImageList {
 
 	private Cursor getCursor() {
 		synchronized (this) {
-			if (mCursor == null)
-				return null;
+			if (mCursor == null) return null;
 			if (mCursorDeactivated) {
 				mCursor.requery();
 				mCursorDeactivated = false;
@@ -116,11 +112,9 @@ public abstract class BaseImageList extends CachedImageList {
 		IImage result = super.getImageAt(i);
 		if (result == null) {
 			Cursor cursor = getCursor();
-			if (cursor == null)
-				return null;
+			if (cursor == null) return null;
 			synchronized (this) {
-				result = cursor.moveToPosition(i) ? loadImageFromCursor(cursor)
-						: null;
+				result = cursor.moveToPosition(i) ? loadImageFromCursor(cursor) : null;
 				cache(i, result);
 			}
 		}
@@ -130,7 +124,7 @@ public abstract class BaseImageList extends CachedImageList {
 	public boolean removeImage(IImage image) {
 		// TODO: need to delete the thumbnails as well
 		if (mContentResolver.delete(image.fullSizeImageUri(), null, null) > 0) {
-			((BaseImage) image).onRemove();
+			((BaseImage)image).onRemove();
 			invalidateCursor();
 			invalidateCache();
 			return true;
@@ -151,8 +145,7 @@ public abstract class BaseImageList extends CachedImageList {
 	protected abstract long getImageId(Cursor cursor);
 
 	protected void invalidateCursor() {
-		if (mCursor == null)
-			return;
+		if (mCursor == null) return;
 		mCursor.deactivate();
 		mCursorDeactivated = true;
 	}
@@ -178,8 +171,7 @@ public abstract class BaseImageList extends CachedImageList {
 	}
 
 	public IImage getImageForUri(Uri uri) {
-		if (!isChildImageUri(uri))
-			return null;
+		if (!isChildImageUri(uri)) return null;
 		// Find the id of the input URI.
 		long matchId;
 		try {
@@ -190,8 +182,7 @@ public abstract class BaseImageList extends CachedImageList {
 		}
 		// TODO: design a better method to get URI of specified ID
 		Cursor cursor = getCursor();
-		if (cursor == null)
-			return null;
+		if (cursor == null) return null;
 		synchronized (this) {
 			cursor.moveToPosition(-1); // before first
 			for (int i = 0; cursor.moveToNext(); ++i) {
@@ -209,7 +200,7 @@ public abstract class BaseImageList extends CachedImageList {
 	}
 
 	public int getImageIndex(IImage image) {
-		return ((BaseImage) image).mIndex;
+		return ((BaseImage)image).mIndex;
 	}
 
 	// This provides a default sorting order string for subclasses.
@@ -218,14 +209,12 @@ public abstract class BaseImageList extends CachedImageList {
 	// The date is obtained from the "datetaken" column. But if it is null,
 	// the "date_modified" column is used instead.
 	protected String sortOrder() {
-		String ascending = (mSort == ImageManager.SORT_ASCENDING) ? " ASC"
-				: " DESC";
+		String ascending = (mSort == ImageManager.SORT_ASCENDING) ? " ASC" : " DESC";
 
 		// Use DATE_TAKEN if it's non-null, otherwise use DATE_MODIFIED.
 		// DATE_TAKEN is in milliseconds, but DATE_MODIFIED is in seconds.
-		String dateExpr = "case ifnull(datetaken,0)"
-				+ " when 0 then date_modified*1000" + " else datetaken"
-				+ " end";
+		String dateExpr = "case ifnull(datetaken,0)" + " when 0 then date_modified*1000"
+				+ " else datetaken" + " end";
 
 		// Add id to the end so that we don't ever get random sorting
 		// which could happen, I suppose, if the date values are the same.

@@ -125,8 +125,7 @@ public class MenuHelper {
 
 	public static long getImageFileSize(IImage image) {
 		java.io.InputStream data = image.fullSizeImageData();
-		if (data == null)
-			return -1;
+		if (data == null) return -1;
 		try {
 			return data.available();
 		} catch (java.io.IOException ex) {
@@ -142,8 +141,7 @@ public class MenuHelper {
 	// content://media/... (MediaProvider)
 	// file:///sdcard/... (Browser download)
 	public static boolean isWhiteListUri(Uri uri) {
-		if (uri == null)
-			return false;
+		if (uri == null) return false;
 
 		String scheme = uri.getScheme();
 		String authority = uri.getAuthority();
@@ -173,8 +171,7 @@ public class MenuHelper {
 
 	public static boolean hasLatLngData(IImage image) {
 		ExifInterface exif = getExif(image);
-		if (exif == null)
-			return false;
+		if (exif == null) return false;
 		float latlng[] = new float[2];
 		return exif.getLatLong(latlng);
 	}
@@ -187,15 +184,14 @@ public class MenuHelper {
 	}
 
 	private static void setDetailsValue(View d, String text, int valueId) {
-		((TextView) d.findViewById(valueId)).setText(text);
+		((TextView)d.findViewById(valueId)).setText(text);
 	}
 
 	private static void hideDetailsRow(View d, int rowId) {
 		d.findViewById(rowId).setVisibility(View.GONE);
 	}
 
-	private static class UpdateLocationCallback implements
-			ReverseGeocoderTask.Callback {
+	private static class UpdateLocationCallback implements ReverseGeocoderTask.Callback {
 		WeakReference<View> mView;
 
 		public UpdateLocationCallback(WeakReference<View> view) {
@@ -207,25 +203,20 @@ public class MenuHelper {
 			// executed by UI thread, it doesn't matter whether the
 			// details dialog is dismissed or not.
 			View view = mView.get();
-			if (view == null)
-				return;
+			if (view == null) return;
 			if (!location.equals(MenuHelper.EMPTY_STRING)) {
-				MenuHelper.setDetailsValue(view, location,
-						R.id.details_location_value);
+				MenuHelper.setDetailsValue(view, location, R.id.details_location_value);
 			} else {
 				MenuHelper.hideDetailsRow(view, R.id.details_location_row);
 			}
 		}
 	}
 
-	private static void setLatLngDetails(final View d, Activity context,
-			ExifInterface exif) {
+	private static void setLatLngDetails(final View d, Activity context, ExifInterface exif) {
 		float[] latlng = new float[2];
 		if (exif.getLatLong(latlng)) {
-			setDetailsValue(d, String.valueOf(latlng[0]),
-					R.id.details_latitude_value);
-			setDetailsValue(d, String.valueOf(latlng[1]),
-					R.id.details_longitude_value);
+			setDetailsValue(d, String.valueOf(latlng[0]), R.id.details_latitude_value);
+			setDetailsValue(d, String.valueOf(latlng[1]), R.id.details_longitude_value);
 
 			if (latlng[0] == INVALID_LATLNG || latlng[1] == INVALID_LATLNG) {
 				hideDetailsRow(d, R.id.details_latitude_row);
@@ -234,8 +225,7 @@ public class MenuHelper {
 				return;
 			}
 
-			UpdateLocationCallback cb = new UpdateLocationCallback(
-					new WeakReference<View>(d));
+			UpdateLocationCallback cb = new UpdateLocationCallback(new WeakReference<View>(d));
 			Geocoder geocoder = new Geocoder(context);
 			new ReverseGeocoderTask(geocoder, latlng, cb).execute();
 		} else {
@@ -260,8 +250,8 @@ public class MenuHelper {
 
 	// Called when "Show on Maps" is clicked.
 	// Displays image location on Google Maps for further operations.
-	private static boolean onShowMapClicked(MenuInvoker onInvoke,
-			final Handler handler, final Activity activity) {
+	private static boolean onShowMapClicked(MenuInvoker onInvoke, final Handler handler,
+			final Activity activity) {
 		onInvoke.run(new MenuCallback() {
 			public void run(Uri u, IImage image) {
 				if (image == null) {
@@ -281,9 +271,8 @@ public class MenuHelper {
 				if (!ok) {
 					handler.post(new Runnable() {
 						public void run() {
-							Toast.makeText(activity,
-									R.string.no_location_image,
-									Toast.LENGTH_SHORT).show();
+							Toast.makeText(activity, R.string.no_location_image, Toast.LENGTH_SHORT)
+									.show();
 						}
 					});
 					return;
@@ -293,10 +282,10 @@ public class MenuHelper {
 				// the MapView to specified location, but we need a bubble
 				// for further operations (routing to/from).
 				// The q=(lat, lng) syntax is suggested by geo-team.
-				String uri = "http://maps.google.com/maps?f=q&" + "q=("
-						+ latlng[0] + "," + latlng[1] + ")";
-				activity.startActivity(new Intent(
-						android.content.Intent.ACTION_VIEW, Uri.parse(uri)));
+				String uri = "http://maps.google.com/maps?f=q&" + "q=(" + latlng[0] + ","
+						+ latlng[1] + ")";
+				activity.startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri
+						.parse(uri)));
 			}
 		});
 		return true;
@@ -312,8 +301,7 @@ public class MenuHelper {
 		hideDetailsRow(d, R.id.details_location_row);
 	}
 
-	private static void showExifInformation(IImage image, View d,
-			Activity activity) {
+	private static void showExifInformation(IImage image, View d, Activity activity) {
 		ExifInterface exif = getExif(image);
 		if (exif == null) {
 			hideExifInformation(d);
@@ -350,57 +338,47 @@ public class MenuHelper {
 	 * recognized.
 	 */
 	private static String getWhiteBalanceString(ExifInterface exif) {
-		int whitebalance = exif.getAttributeInt(
-				ExifInterface.TAG_WHITE_BALANCE, -1);
-		if (whitebalance == -1)
-			return "";
+		int whitebalance = exif.getAttributeInt(ExifInterface.TAG_WHITE_BALANCE, -1);
+		if (whitebalance == -1) return "";
 
 		switch (whitebalance) {
-		case ExifInterface.WHITEBALANCE_AUTO:
-			return "Auto";
-		case ExifInterface.WHITEBALANCE_MANUAL:
-			return "Manual";
-		default:
-			return "";
+			case ExifInterface.WHITEBALANCE_AUTO:
+				return "Auto";
+			case ExifInterface.WHITEBALANCE_MANUAL:
+				return "Manual";
+			default:
+				return "";
 		}
 	}
 
 	// Called when "Details" is clicked.
 	// Displays detailed information about the image/video.
-	private static boolean onDetailsClicked(MenuInvoker onInvoke,
-			final Handler handler, final Activity activity) {
+	private static boolean onDetailsClicked(MenuInvoker onInvoke, final Handler handler,
+			final Activity activity) {
 		onInvoke.run(new MenuCallback() {
 			public void run(Uri u, IImage image) {
 				if (image == null) {
 					return;
 				}
 
-				final AlertDialog.Builder builder = new AlertDialog.Builder(
-						activity);
+				final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
-				final View d = View.inflate(activity, R.layout.detailsview,
-						null);
+				final View d = View.inflate(activity, R.layout.detailsview, null);
 
-				ImageView imageView = (ImageView) d
-						.findViewById(R.id.details_thumbnail_image);
+				ImageView imageView = (ImageView)d.findViewById(R.id.details_thumbnail_image);
 				imageView.setImageBitmap(image.miniThumbBitmap());
 
-				TextView textView = (TextView) d
-						.findViewById(R.id.details_image_title);
+				TextView textView = (TextView)d.findViewById(R.id.details_image_title);
 				textView.setText(image.getTitle());
 
 				long length = getImageFileSize(image);
-				String lengthString = length < 0 ? EMPTY_STRING : Formatter
-						.formatFileSize(activity, length);
-				((TextView) d.findViewById(R.id.details_file_size_value))
-						.setText(lengthString);
+				String lengthString = length < 0 ? EMPTY_STRING : Formatter.formatFileSize(
+						activity, length);
+				((TextView)d.findViewById(R.id.details_file_size_value)).setText(lengthString);
 
-				d.findViewById(R.id.details_frame_rate_row).setVisibility(
-						View.GONE);
-				d.findViewById(R.id.details_bit_rate_row).setVisibility(
-						View.GONE);
-				d.findViewById(R.id.details_format_row)
-						.setVisibility(View.GONE);
+				d.findViewById(R.id.details_frame_rate_row).setVisibility(View.GONE);
+				d.findViewById(R.id.details_bit_rate_row).setVisibility(View.GONE);
+				d.findViewById(R.id.details_format_row).setVisibility(View.GONE);
 				d.findViewById(R.id.details_codec_row).setVisibility(View.GONE);
 
 				int dimensionWidth = 0;
@@ -409,14 +387,12 @@ public class MenuHelper {
 					// getWidth is much slower than reading from EXIF
 					dimensionWidth = image.getWidth();
 					dimensionHeight = image.getHeight();
-					d.findViewById(R.id.details_duration_row).setVisibility(
-							View.GONE);
+					d.findViewById(R.id.details_duration_row).setVisibility(View.GONE);
 				}
 
 				String value = null;
 				if (dimensionWidth > 0 && dimensionHeight > 0) {
-					value = String.format(
-							activity.getString(R.string.details_dimension_x),
+					value = String.format(activity.getString(R.string.details_dimension_x),
 							dimensionWidth, dimensionHeight);
 				}
 
@@ -448,8 +424,7 @@ public class MenuHelper {
 
 				builder.setNeutralButton(R.string.details_ok,
 						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int which) {
+							public void onClick(DialogInterface dialog, int which) {
 								dialog.dismiss();
 							}
 						});
@@ -457,8 +432,7 @@ public class MenuHelper {
 				handler.post(new Runnable() {
 					public void run() {
 						builder.setIcon(android.R.drawable.ic_dialog_info)
-								.setTitle(R.string.details_panel_title)
-								.setView(d).show();
+								.setTitle(R.string.details_panel_title).setView(d).show();
 					}
 				});
 			}
@@ -467,8 +441,7 @@ public class MenuHelper {
 	}
 
 	// Called when "Rotate left" or "Rotate right" is clicked.
-	private static boolean onRotateClicked(MenuInvoker onInvoke,
-			final int degree) {
+	private static boolean onRotateClicked(MenuInvoker onInvoke, final int degree) {
 		onInvoke.run(new MenuCallback() {
 			public void run(Uri u, IImage image) {
 				if (image == null || image.isReadonly()) {
@@ -481,8 +454,7 @@ public class MenuHelper {
 	}
 
 	// Called when "Crop" is clicked.
-	private static boolean onCropClicked(MenuInvoker onInvoke,
-			final Activity activity) {
+	private static boolean onCropClicked(MenuInvoker onInvoke, final Activity activity) {
 		onInvoke.run(new MenuCallback() {
 			public void run(Uri u, IImage image) {
 				if (u == null) {
@@ -491,16 +463,14 @@ public class MenuHelper {
 
 				Intent cropIntent = new Intent("com.android.camera.action.CROP");
 				cropIntent.setData(u);
-				activity.startActivityForResult(cropIntent,
-						RESULT_COMMON_MENU_CROP);
+				activity.startActivityForResult(cropIntent, RESULT_COMMON_MENU_CROP);
 			}
 		});
 		return true;
 	}
 
 	// Called when "Set as" is clicked.
-	private static boolean onSetAsClicked(MenuInvoker onInvoke,
-			final Activity activity) {
+	private static boolean onSetAsClicked(MenuInvoker onInvoke, final Activity activity) {
 		onInvoke.run(new MenuCallback() {
 			public void run(Uri u, IImage image) {
 				if (u == null || image == null) {
@@ -516,12 +486,10 @@ public class MenuHelper {
 	}
 
 	// Called when "Share" is clicked.
-	private static boolean onImageShareClicked(MenuInvoker onInvoke,
-			final Activity activity) {
+	private static boolean onImageShareClicked(MenuInvoker onInvoke, final Activity activity) {
 		onInvoke.run(new MenuCallback() {
 			public void run(Uri u, IImage image) {
-				if (image == null)
-					return;
+				if (image == null) return;
 
 				Intent intent = new Intent();
 				intent.setAction(Intent.ACTION_SEND);
@@ -531,14 +499,12 @@ public class MenuHelper {
 				boolean isImage = ImageManager.isImage(image);
 				try {
 					activity.startActivity(Intent.createChooser(intent,
-							activity.getText(isImage ? R.string.sendImage
-									: R.string.sendVideo)));
+							activity.getText(isImage ? R.string.sendImage : R.string.sendVideo)));
 				} catch (android.content.ActivityNotFoundException ex) {
 					Toast.makeText(
 							activity,
 							isImage ? R.string.no_way_to_share_image
-									: R.string.no_way_to_share_video,
-							Toast.LENGTH_SHORT).show();
+									: R.string.no_way_to_share_video, Toast.LENGTH_SHORT).show();
 				}
 			}
 		});
@@ -546,13 +512,11 @@ public class MenuHelper {
 	}
 
 	// Called when "Play" is clicked.
-	private static boolean onViewPlayClicked(MenuInvoker onInvoke,
-			final Activity activity) {
+	private static boolean onViewPlayClicked(MenuInvoker onInvoke, final Activity activity) {
 		onInvoke.run(new MenuCallback() {
 			public void run(Uri uri, IImage image) {
 				if (image != null) {
-					Intent intent = new Intent(Intent.ACTION_VIEW, image
-							.fullSizeImageUri());
+					Intent intent = new Intent(Intent.ACTION_VIEW, image.fullSizeImageUri());
 					activity.startActivity(intent);
 				}
 			}
@@ -561,8 +525,8 @@ public class MenuHelper {
 	}
 
 	// Called when "Delete" is clicked.
-	private static boolean onDeleteClicked(MenuInvoker onInvoke,
-			final Activity activity, final Runnable onDelete) {
+	private static boolean onDeleteClicked(MenuInvoker onInvoke, final Activity activity,
+			final Runnable onDelete) {
 		onInvoke.run(new MenuCallback() {
 			public void run(Uri uri, IImage image) {
 				if (image != null) {
@@ -573,39 +537,33 @@ public class MenuHelper {
 		return true;
 	}
 
-	static MenuItemsResult addImageMenuItems(Menu menu, int inclusions,
-			final Activity activity, final Handler handler,
-			final Runnable onDelete, final MenuInvoker onInvoke) {
+	static MenuItemsResult addImageMenuItems(Menu menu, int inclusions, final Activity activity,
+			final Handler handler, final Runnable onDelete, final MenuInvoker onInvoke) {
 		final ArrayList<MenuItem> requiresWriteAccessItems = new ArrayList<MenuItem>();
 		final ArrayList<MenuItem> requiresNoDrmAccessItems = new ArrayList<MenuItem>();
 		final ArrayList<MenuItem> requiresImageItems = new ArrayList<MenuItem>();
 		final ArrayList<MenuItem> requiresVideoItems = new ArrayList<MenuItem>();
 
 		if ((inclusions & INCLUDE_ROTATE_MENU) != 0) {
-			SubMenu rotateSubmenu = menu.addSubMenu(Menu.NONE, Menu.NONE,
-					POSITION_IMAGE_ROTATE, R.string.rotate).setIcon(
-					android.R.drawable.ic_menu_rotate);
+			SubMenu rotateSubmenu = menu.addSubMenu(Menu.NONE, Menu.NONE, POSITION_IMAGE_ROTATE,
+					R.string.rotate).setIcon(android.R.drawable.ic_menu_rotate);
 			// Don't show the rotate submenu if the item at hand is read only
 			// since the items within the submenu won't be shown anyway. This
 			// is really a framework bug in that it shouldn't show the submenu
 			// if the submenu has no visible items.
-			MenuItem rotateLeft = rotateSubmenu
-					.add(R.string.rotate_left)
-					.setOnMenuItemClickListener(
-							new MenuItem.OnMenuItemClickListener() {
-								public boolean onMenuItemClick(MenuItem item) {
-									return onRotateClicked(onInvoke, -90);
-								}
-							}).setAlphabeticShortcut('l');
+			MenuItem rotateLeft = rotateSubmenu.add(R.string.rotate_left)
+					.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+						public boolean onMenuItemClick(MenuItem item) {
+							return onRotateClicked(onInvoke, -90);
+						}
+					}).setAlphabeticShortcut('l');
 
-			MenuItem rotateRight = rotateSubmenu
-					.add(R.string.rotate_right)
-					.setOnMenuItemClickListener(
-							new MenuItem.OnMenuItemClickListener() {
-								public boolean onMenuItemClick(MenuItem item) {
-									return onRotateClicked(onInvoke, 90);
-								}
-							}).setAlphabeticShortcut('r');
+			MenuItem rotateRight = rotateSubmenu.add(R.string.rotate_right)
+					.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+						public boolean onMenuItemClick(MenuItem item) {
+							return onRotateClicked(onInvoke, 90);
+						}
+					}).setAlphabeticShortcut('r');
 
 			requiresWriteAccessItems.add(rotateSubmenu.getItem());
 			requiresWriteAccessItems.add(rotateLeft);
@@ -617,8 +575,8 @@ public class MenuHelper {
 		}
 
 		if ((inclusions & INCLUDE_CROP_MENU) != 0) {
-			MenuItem autoCrop = menu.add(Menu.NONE, Menu.NONE,
-					POSITION_IMAGE_CROP, R.string.camera_crop);
+			MenuItem autoCrop = menu.add(Menu.NONE, Menu.NONE, POSITION_IMAGE_CROP,
+					R.string.camera_crop);
 			autoCrop.setIcon(android.R.drawable.ic_menu_crop);
 			autoCrop.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 				public boolean onMenuItemClick(MenuItem item) {
@@ -630,8 +588,8 @@ public class MenuHelper {
 		}
 
 		if ((inclusions & INCLUDE_SET_MENU) != 0) {
-			MenuItem setMenu = menu.add(Menu.NONE, Menu.NONE,
-					POSITION_IMAGE_SET, R.string.camera_set);
+			MenuItem setMenu = menu.add(Menu.NONE, Menu.NONE, POSITION_IMAGE_SET,
+					R.string.camera_set);
 			setMenu.setIcon(android.R.drawable.ic_menu_set_as);
 			setMenu.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 				public boolean onMenuItemClick(MenuItem item) {
@@ -642,69 +600,59 @@ public class MenuHelper {
 		}
 
 		if ((inclusions & INCLUDE_SHARE_MENU) != 0) {
-			MenuItem item1 = menu.add(Menu.NONE, MENU_IMAGE_SHARE,
-					POSITION_IMAGE_SHARE, R.string.camera_share)
-					.setOnMenuItemClickListener(
-							new MenuItem.OnMenuItemClickListener() {
-								public boolean onMenuItemClick(MenuItem item) {
-									return onImageShareClicked(onInvoke,
-											activity);
-								}
-							});
+			MenuItem item1 = menu.add(Menu.NONE, MENU_IMAGE_SHARE, POSITION_IMAGE_SHARE,
+					R.string.camera_share).setOnMenuItemClickListener(
+					new MenuItem.OnMenuItemClickListener() {
+						public boolean onMenuItemClick(MenuItem item) {
+							return onImageShareClicked(onInvoke, activity);
+						}
+					});
 			item1.setIcon(android.R.drawable.ic_menu_share);
 			MenuItem item = item1;
 			requiresNoDrmAccessItems.add(item);
 		}
 
 		if ((inclusions & INCLUDE_DELETE_MENU) != 0) {
-			MenuItem deleteItem = menu.add(Menu.NONE, Menu.NONE,
-					POSITION_IMAGE_TOSS, R.string.camera_toss);
+			MenuItem deleteItem = menu.add(Menu.NONE, Menu.NONE, POSITION_IMAGE_TOSS,
+					R.string.camera_toss);
 			requiresWriteAccessItems.add(deleteItem);
-			deleteItem
-					.setOnMenuItemClickListener(
-							new MenuItem.OnMenuItemClickListener() {
-								public boolean onMenuItemClick(MenuItem item) {
-									return onDeleteClicked(onInvoke, activity,
-											onDelete);
-								}
-							}).setAlphabeticShortcut('d')
-					.setIcon(android.R.drawable.ic_menu_delete);
+			deleteItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					return onDeleteClicked(onInvoke, activity, onDelete);
+				}
+			}).setAlphabeticShortcut('d').setIcon(android.R.drawable.ic_menu_delete);
 		}
 
 		if ((inclusions & INCLUDE_DETAILS_MENU) != 0) {
-			MenuItem detailsMenu = menu.add(Menu.NONE, Menu.NONE,
-					POSITION_DETAILS, R.string.details)
-					.setOnMenuItemClickListener(
-							new MenuItem.OnMenuItemClickListener() {
-								public boolean onMenuItemClick(MenuItem item) {
-									return onDetailsClicked(onInvoke, handler,
-											activity);
-								}
-							});
+			MenuItem detailsMenu = menu.add(Menu.NONE, Menu.NONE, POSITION_DETAILS,
+					R.string.details).setOnMenuItemClickListener(
+					new MenuItem.OnMenuItemClickListener() {
+						public boolean onMenuItemClick(MenuItem item) {
+							return onDetailsClicked(onInvoke, handler, activity);
+						}
+					});
 			detailsMenu.setIcon(R.drawable.ic_menu_view_details);
 		}
 
 		if ((inclusions & INCLUDE_SHOWMAP_MENU) != 0) {
-			MenuItem showOnMapItem = menu.add(Menu.NONE, MENU_IMAGE_SHOWMAP,
-					POSITION_SHOWMAP, R.string.show_on_map);
-			showOnMapItem.setOnMenuItemClickListener(
-					new MenuItem.OnMenuItemClickListener() {
-						public boolean onMenuItemClick(MenuItem item) {
-							return onShowMapClicked(onInvoke, handler, activity);
-						}
-					}).setIcon(R.drawable.ic_menu_3d_globe);
+			MenuItem showOnMapItem = menu.add(Menu.NONE, MENU_IMAGE_SHOWMAP, POSITION_SHOWMAP,
+					R.string.show_on_map);
+			showOnMapItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					return onShowMapClicked(onInvoke, handler, activity);
+				}
+			}).setIcon(R.drawable.ic_menu_3d_globe);
 			requiresImageItems.add(showOnMapItem);
 		}
 
 		if ((inclusions & INCLUDE_VIEWPLAY_MENU) != 0) {
-			MenuItem videoPlayItem = menu.add(Menu.NONE, Menu.NONE,
-					POSITION_VIEWPLAY, R.string.video_play)
-					.setOnMenuItemClickListener(
-							new MenuItem.OnMenuItemClickListener() {
-								public boolean onMenuItemClick(MenuItem item) {
-									return onViewPlayClicked(onInvoke, activity);
-								}
-							});
+			MenuItem videoPlayItem = menu.add(Menu.NONE, Menu.NONE, POSITION_VIEWPLAY,
+					R.string.video_play).setOnMenuItemClickListener(
+					new MenuItem.OnMenuItemClickListener() {
+						public boolean onMenuItemClick(MenuItem item) {
+							return onViewPlayClicked(onInvoke, activity);
+						}
+					});
 			/*
 			 * videoPlayItem.setIcon(
 			 * com.android.internal.R.drawable.ic_menu_play_clip);
@@ -765,62 +713,53 @@ public class MenuHelper {
 	}
 
 	static void deleteImpl(Activity activity, Runnable onDelete, boolean isImage) {
-		boolean needConfirm = PreferenceManager.getDefaultSharedPreferences(
-				activity).getBoolean("pref_gallery_confirm_delete_key", true);
+		boolean needConfirm = PreferenceManager.getDefaultSharedPreferences(activity).getBoolean(
+				"pref_gallery_confirm_delete_key", true);
 		if (!needConfirm) {
-			if (onDelete != null)
-				onDelete.run();
+			if (onDelete != null) onDelete.run();
 		} else {
 			String title = activity.getString(R.string.confirm_delete_title);
-			String message = activity
-					.getString(isImage ? R.string.confirm_delete_message
-							: R.string.confirm_delete_video_message);
+			String message = activity.getString(isImage ? R.string.confirm_delete_message
+					: R.string.confirm_delete_video_message);
 			confirmAction(activity, title, message, onDelete);
 		}
 	}
 
 	public static void deleteMultiple(Context context, Runnable action) {
-		boolean needConfirm = PreferenceManager.getDefaultSharedPreferences(
-				context).getBoolean("pref_gallery_confirm_delete_key", true);
+		boolean needConfirm = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(
+				"pref_gallery_confirm_delete_key", true);
 		if (!needConfirm) {
-			if (action != null)
-				action.run();
+			if (action != null) action.run();
 		} else {
 			String title = context.getString(R.string.confirm_delete_title);
-			String message = context
-					.getString(R.string.confirm_delete_multiple_message);
+			String message = context.getString(R.string.confirm_delete_multiple_message);
 			confirmAction(context, title, message, action);
 		}
 	}
 
-	public static void confirmAction(Context context, String title,
-			String message, final Runnable action) {
+	public static void confirmAction(Context context, String title, String message,
+			final Runnable action) {
 		OnClickListener listener = new OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 				switch (which) {
-				case DialogInterface.BUTTON_POSITIVE:
-					if (action != null)
-						action.run();
+					case DialogInterface.BUTTON_POSITIVE:
+						if (action != null) action.run();
 				}
 			}
 		};
-		new AlertDialog.Builder(context)
-				.setIcon(android.R.drawable.ic_dialog_alert).setTitle(title)
-				.setMessage(message)
+		new AlertDialog.Builder(context).setIcon(android.R.drawable.ic_dialog_alert)
+				.setTitle(title).setMessage(message)
 				.setPositiveButton(android.R.string.ok, listener)
-				.setNegativeButton(android.R.string.cancel, listener).create()
-				.show();
+				.setNegativeButton(android.R.string.cancel, listener).create().show();
 	}
 
 	static void addCapturePictureMenuItems(Menu menu, final Activity activity) {
-		menu.add(Menu.NONE, Menu.NONE, POSITION_CAPTURE_PICTURE,
-				R.string.capture_picture)
-				.setOnMenuItemClickListener(
-						new MenuItem.OnMenuItemClickListener() {
-							public boolean onMenuItemClick(MenuItem item) {
-								return onCapturePictureClicked(activity);
-							}
-						}).setIcon(android.R.drawable.ic_menu_camera);
+		menu.add(Menu.NONE, Menu.NONE, POSITION_CAPTURE_PICTURE, R.string.capture_picture)
+				.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+					public boolean onMenuItemClick(MenuItem item) {
+						return onCapturePictureClicked(activity);
+					}
+				}).setIcon(android.R.drawable.ic_menu_camera);
 	}
 
 	private static boolean onCapturePictureClicked(Activity activity) {
@@ -835,14 +774,12 @@ public class MenuHelper {
 	}
 
 	static void addCaptureVideoMenuItems(Menu menu, final Activity activity) {
-		menu.add(Menu.NONE, Menu.NONE, POSITION_CAPTURE_VIDEO,
-				R.string.capture_video)
-				.setOnMenuItemClickListener(
-						new MenuItem.OnMenuItemClickListener() {
-							public boolean onMenuItemClick(MenuItem item) {
-								return onCaptureVideoClicked(activity);
-							}
-						}).setIcon(R.drawable.ic_menu_camera_video_view);
+		menu.add(Menu.NONE, Menu.NONE, POSITION_CAPTURE_VIDEO, R.string.capture_video)
+				.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+					public boolean onMenuItemClick(MenuItem item) {
+						return onCaptureVideoClicked(activity);
+					}
+				}).setIcon(R.drawable.ic_menu_camera_video_view);
 	}
 
 	private static boolean onCaptureVideoClicked(Activity activity) {
@@ -868,11 +805,9 @@ public class MenuHelper {
 		int s = duration - (h * 3600 + m * 60);
 		String durationValue;
 		if (h == 0) {
-			durationValue = String.format(
-					context.getString(R.string.details_ms), m, s);
+			durationValue = String.format(context.getString(R.string.details_ms), m, s);
 		} else {
-			durationValue = String.format(
-					context.getString(R.string.details_hms), h, m, s);
+			durationValue = String.format(context.getString(R.string.details_hms), h, m, s);
 		}
 		return durationValue;
 	}
@@ -905,12 +840,10 @@ public class MenuHelper {
 			if (!ImageManager.hasStorage()) {
 				return NO_STORAGE_ERROR;
 			} else {
-				String storageDirectory = Environment
-						.getExternalStorageDirectory().toString();
+				String storageDirectory = Environment.getExternalStorageDirectory().toString();
 				StatFs stat = new StatFs(storageDirectory);
-				float remaining = ((float) stat.getAvailableBlocks() * (float) stat
-						.getBlockSize()) / 400000F;
-				return (int) remaining;
+				float remaining = ((float)stat.getAvailableBlocks() * (float)stat.getBlockSize()) / 400000F;
+				return (int)remaining;
 			}
 		} catch (Exception ex) {
 			// if we can't stat the filesystem then we don't know how many

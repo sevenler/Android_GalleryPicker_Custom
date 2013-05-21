@@ -31,19 +31,20 @@ public interface IImage {
 	static final int THUMBNAIL_MAX_NUM_PIXELS_HEIGHT = 384;
 	static final int MINI_THUMB_MAX_NUM_PIXELS_WIDTH = 128;
 	static final int MINI_THUMB_MAX_NUM_PIXELS_HEIGHT = 128;
-	static final int THUMBNAIL_MAX_NUM_PIXELS = THUMBNAIL_MAX_NUM_PIXELS_WIDTH * THUMBNAIL_MAX_NUM_PIXELS_HEIGHT;
-	static final int MINI_THUMB_MAX_NUM_PIXELS = MINI_THUMB_MAX_NUM_PIXELS_WIDTH * MINI_THUMB_MAX_NUM_PIXELS_HEIGHT;
+	static final int THUMBNAIL_MAX_NUM_PIXELS = THUMBNAIL_MAX_NUM_PIXELS_WIDTH
+			* THUMBNAIL_MAX_NUM_PIXELS_HEIGHT;
+	static final int MINI_THUMB_MAX_NUM_PIXELS = MINI_THUMB_MAX_NUM_PIXELS_WIDTH
+			* MINI_THUMB_MAX_NUM_PIXELS_HEIGHT;
 	static final int UNCONSTRAINED = -1;
 
 	/** Get the image list which contains this image. */
 	public abstract IImageList getContainer();
 
 	/** Get the bitmap for the full size image. */
-	public abstract Bitmap fullSizeBitmap(int minSideLength,
-			int maxNumberOfPixels);
+	public abstract Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels);
 
-	public abstract Bitmap fullSizeBitmap(int minSideLength,
-			int maxNumberOfPixels, boolean rotateAsNeeded, boolean useNative);
+	public abstract Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels,
+			boolean rotateAsNeeded, boolean useNative);
 
 	public abstract int getDegreesRotated();
 

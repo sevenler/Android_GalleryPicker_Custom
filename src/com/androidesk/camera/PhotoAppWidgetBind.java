@@ -45,13 +45,10 @@ class PhotoAppWidgetBind extends NoSearchActivity {
 		final Intent intent = getIntent();
 		final Bundle extras = intent.getExtras();
 
-		final int[] appWidgetIds = extras
-				.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
-		final ArrayList<Bitmap> bitmaps = extras
-				.getParcelableArrayList(EXTRA_APPWIDGET_BITMAPS);
+		final int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+		final ArrayList<Bitmap> bitmaps = extras.getParcelableArrayList(EXTRA_APPWIDGET_BITMAPS);
 
-		if (appWidgetIds == null || bitmaps == null
-				|| appWidgetIds.length != bitmaps.size()) {
+		if (appWidgetIds == null || bitmaps == null || appWidgetIds.length != bitmaps.size()) {
 			Log.e(TAG, "Problem parsing photo widget bind request");
 			return;
 		}
@@ -64,8 +61,7 @@ class PhotoAppWidgetBind extends NoSearchActivity {
 			helper.setPhoto(appWidgetId, bitmaps.get(i));
 
 			// Push newly updated widget to surface
-			RemoteViews views = PhotoAppWidgetProvider.buildUpdate(this,
-					appWidgetId, helper);
+			RemoteViews views = PhotoAppWidgetProvider.buildUpdate(this, appWidgetId, helper);
 			appWidgetManager.updateAppWidget(new int[] { appWidgetId }, views);
 		}
 		helper.close();

@@ -49,8 +49,7 @@ import com.androidesk.camera.gallery.VideoObject;
  */
 
 interface ImageGetterCallback {
-	public void imageLoaded(int pos, int offset, RotateBitmap bitmap,
-			boolean isThumb);
+	public void imageLoaded(int pos, int offset, RotateBitmap bitmap, boolean isThumb);
 
 	public boolean wantsThumbnail(int pos, int offset);
 
@@ -103,9 +102,8 @@ class ImageGetter {
 
 	private class ImageGetterRunnable implements Runnable {
 
-		private Runnable callback(final int position, final int offset,
-				final boolean isThumb, final RotateBitmap bitmap,
-				final int requestSerial) {
+		private Runnable callback(final int position, final int offset, final boolean isThumb,
+				final RotateBitmap bitmap, final int requestSerial) {
 			return new Runnable() {
 				public void run() {
 					// check for inflight callbacks that aren't applicable
@@ -137,8 +135,7 @@ class ImageGetter {
 			while (true) {
 				synchronized (ImageGetter.this) {
 					while (mCancel || mDone || mCurrentPosition == -1) {
-						if (mDone)
-							return;
+						if (mDone) return;
 						mIdle = true;
 						ImageGetter.this.notify();
 						try {
@@ -163,8 +160,7 @@ class ImageGetter {
 
 			int[] order = mCB.loadOrder();
 			for (int i = 0; i < order.length; i++) {
-				if (mCancel)
-					return;
+				if (mCancel) return;
 				int offset = order[i];
 				int imageNumber = mCurrentPosition + offset;
 				if (imageNumber >= 0 && imageNumber < imageCount) {
@@ -173,29 +169,24 @@ class ImageGetter {
 					}
 
 					IImage image = mImageList.getImageAt(imageNumber);
-					if (image == null)
-						continue;
-					if (mCancel)
-						return;
+					if (image == null) continue;
+					if (mCancel) return;
 
 					Bitmap b = image.thumbBitmap(IImage.NO_ROTATE);
-					if (b == null)
-						continue;
+					if (b == null) continue;
 					if (mCancel) {
 						b.recycle();
 						return;
 					}
 
-					Runnable cb = callback(mCurrentPosition, offset, true,
-							new RotateBitmap(b, image.getDegreesRotated()),
-							mCurrentSerial);
+					Runnable cb = callback(mCurrentPosition, offset, true, new RotateBitmap(b,
+							image.getDegreesRotated()), mCurrentSerial);
 					mHandler.postGetterCallback(cb);
 				}
 			}
 
 			for (int i = 0; i < order.length; i++) {
-				if (mCancel)
-					return;
+				if (mCancel) return;
 				int offset = order[i];
 				int imageNumber = mCurrentPosition + offset;
 				if (imageNumber >= 0 && imageNumber < imageCount) {
@@ -204,30 +195,23 @@ class ImageGetter {
 					}
 
 					IImage image = mImageList.getImageAt(imageNumber);
-					if (image == null)
-						continue;
-					if (image instanceof VideoObject)
-						continue;
-					if (mCancel)
-						return;
+					if (image == null) continue;
+					if (image instanceof VideoObject) continue;
+					if (mCancel) return;
 
-					int sizeToUse = mCB.fullImageSizeToUse(mCurrentPosition,
-							offset);
-					Bitmap b = image.fullSizeBitmap(sizeToUse, 3 * 1024 * 1024,
-							IImage.NO_ROTATE, IImage.USE_NATIVE);
+					int sizeToUse = mCB.fullImageSizeToUse(mCurrentPosition, offset);
+					Bitmap b = image.fullSizeBitmap(sizeToUse, 3 * 1024 * 1024, IImage.NO_ROTATE,
+							IImage.USE_NATIVE);
 
-					if (b == null)
-						continue;
+					if (b == null) continue;
 					if (mCancel) {
 						b.recycle();
 						return;
 					}
 
-					RotateBitmap rb = new RotateBitmap(b,
-							image.getDegreesRotated());
+					RotateBitmap rb = new RotateBitmap(b, image.getDegreesRotated());
 
-					Runnable cb = callback(mCurrentPosition, offset, false, rb,
-							mCurrentSerial);
+					Runnable cb = callback(mCurrentPosition, offset, false, rb, mCurrentSerial);
 					mHandler.postGetterCallback(cb);
 				}
 			}
@@ -302,9 +286,9 @@ class GetterHandler extends Handler {
 	@Override
 	public void handleMessage(Message message) {
 		switch (message.what) {
-		case IMAGE_GETTER_CALLBACK:
-			((Runnable) message.obj).run();
-			break;
+			case IMAGE_GETTER_CALLBACK:
+				((Runnable)message.obj).run();
+				break;
 		}
 	}
 

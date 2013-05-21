@@ -26,9 +26,9 @@ import android.preference.PreferenceActivity;
 // This is the setting screen for Gallery.
 // It reads the available settings from an XML resource.
 public class GallerySettings extends PreferenceActivity {
-    @Override
-    public void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
-        addPreferencesFromResource(R.xml.gallery_preferences);
-    }
+	@Override
+	public void onCreate(Bundle icicle) {
+		super.onCreate(icicle);
+		addPreferencesFromResource(R.xml.gallery_preferences);
+	}
 }

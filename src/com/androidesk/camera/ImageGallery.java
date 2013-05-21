@@ -65,8 +65,8 @@ import com.androidesk.camera.gallery.UrlImageList;
 import com.androidesk.camera.gallery.VideoObject;
 import com.androidesk.gallery.R;
 
-public class ImageGallery extends NoSearchActivity implements
-		GridViewSpecial.Listener, GridViewSpecial.DrawAdapter {
+public class ImageGallery extends NoSearchActivity implements GridViewSpecial.Listener,
+		GridViewSpecial.DrawAdapter {
 	private static final String STATE_SCROLL_POSITION = "scroll_position";
 	private static final String STATE_SELECTED_INDEX = "first_index";
 
@@ -113,12 +113,11 @@ public class ImageGallery extends NoSearchActivity implements
 
 		setContentView(R.layout.image_gallery);
 
-		getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE,
-				R.layout.custom_gallery_title);
+		getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_gallery_title);
 
 		mNoImagesView = findViewById(R.id.no_images);
 
-		mGvs = (GridViewSpecial) findViewById(R.id.grid);
+		mGvs = (GridViewSpecial)findViewById(R.id.grid);
 		mGvs.setListener(this);
 
 		mFooterOrganizeView = findViewById(R.id.footer_organize);
@@ -128,8 +127,7 @@ public class ImageGallery extends NoSearchActivity implements
 		initializeFooterButtons();
 
 		if (isPickIntent()) {
-			mVideoSizeLimit = getIntent().getLongExtra(
-					MediaStore.EXTRA_SIZE_LIMIT, Long.MAX_VALUE);
+			mVideoSizeLimit = getIntent().getLongExtra(MediaStore.EXTRA_SIZE_LIMIT, Long.MAX_VALUE);
 		} else {
 			mVideoSizeLimit = Long.MAX_VALUE;
 			mGvs.setOnCreateContextMenuListener(new CreateContextMenuListener());
@@ -141,21 +139,21 @@ public class ImageGallery extends NoSearchActivity implements
 	}
 
 	private void initializeFooterButtons() {
-		Button deleteButton = (Button) findViewById(R.id.button_delete);
+		Button deleteButton = (Button)findViewById(R.id.button_delete);
 		deleteButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				onDeleteMultipleClicked();
 			}
 		});
 
-		Button shareButton = (Button) findViewById(R.id.button_share);
+		Button shareButton = (Button)findViewById(R.id.button_share);
 		shareButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				onShareMultipleClicked();
 			}
 		});
 
-		Button closeButton = (Button) findViewById(R.id.button_close);
+		Button closeButton = (Button)findViewById(R.id.button_close);
 		closeButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				closeMultiSelectMode();
@@ -164,15 +162,12 @@ public class ImageGallery extends NoSearchActivity implements
 	}
 
 	private MenuItem addSlideShowMenu(Menu menu) {
-		return menu
-				.add(Menu.NONE, Menu.NONE, MenuHelper.POSITION_SLIDESHOW,
-						R.string.slide_show)
-				.setOnMenuItemClickListener(
-						new MenuItem.OnMenuItemClickListener() {
-							public boolean onMenuItemClick(MenuItem item) {
-								return onSlideShowClicked();
-							}
-						}).setIcon(android.R.drawable.ic_menu_slideshow);
+		return menu.add(Menu.NONE, Menu.NONE, MenuHelper.POSITION_SLIDESHOW, R.string.slide_show)
+				.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+					public boolean onMenuItemClick(MenuItem item) {
+						return onSlideShowClicked();
+					}
+				}).setIcon(android.R.drawable.ic_menu_slideshow);
 	}
 
 	public boolean onSlideShowClicked() {
@@ -191,8 +186,7 @@ public class ImageGallery extends NoSearchActivity implements
 		if (thisUri != null) {
 			String bucket = thisUri.getQueryParameter("bucketId");
 			if (bucket != null) {
-				targetUri = targetUri.buildUpon()
-						.appendQueryParameter("bucketId", bucket).build();
+				targetUri = targetUri.buildUpon().appendQueryParameter("bucketId", bucket).build();
 			}
 		}
 		Intent intent = new Intent(Intent.ACTION_VIEW, targetUri);
@@ -203,8 +197,7 @@ public class ImageGallery extends NoSearchActivity implements
 
 	private final Runnable mDeletePhotoRunnable = new Runnable() {
 		public void run() {
-			if (!canHandleEvent())
-				return;
+			if (!canHandleEvent()) return;
 
 			IImage currentImage = getCurrentImage();
 
@@ -218,8 +211,7 @@ public class ImageGallery extends NoSearchActivity implements
 			mGvs.setImageList(mAllImages);
 			mGvs.start();
 
-			mNoImagesView.setVisibility(mAllImages.isEmpty() ? View.VISIBLE
-					: View.GONE);
+			mNoImagesView.setVisibility(mAllImages.isEmpty() ? View.VISIBLE : View.GONE);
 		}
 	};
 
@@ -254,24 +246,21 @@ public class ImageGallery extends NoSearchActivity implements
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (!canHandleEvent())
-			return false;
+		if (!canHandleEvent()) return false;
 		switch (keyCode) {
-		case KeyEvent.KEYCODE_DEL:
-			IImage image = getCurrentImage();
-			if (image != null) {
-				MenuHelper.deleteImage(this, mDeletePhotoRunnable,
-						getCurrentImage());
-			}
-			return true;
+			case KeyEvent.KEYCODE_DEL:
+				IImage image = getCurrentImage();
+				if (image != null) {
+					MenuHelper.deleteImage(this, mDeletePhotoRunnable, getCurrentImage());
+				}
+				return true;
 		}
 		return super.onKeyDown(keyCode, event);
 	}
 
 	private boolean isPickIntent() {
 		String action = getIntent().getAction();
-		return (Intent.ACTION_PICK.equals(action) || Intent.ACTION_GET_CONTENT
-				.equals(action));
+		return (Intent.ACTION_PICK.equals(action) || Intent.ACTION_GET_CONTENT.equals(action));
 	}
 
 	private void launchCropperOrFinish(IImage img) {
@@ -289,12 +278,9 @@ public class ImageGallery extends NoSearchActivity implements
 					dialog.dismiss();
 				}
 			};
-			new AlertDialog.Builder(this)
-					.setIcon(android.R.drawable.ic_dialog_info)
-					.setTitle(R.string.file_info_title)
-					.setMessage(R.string.video_exceed_mms_limit)
-					.setNeutralButton(R.string.details_ok, buttonListener)
-					.show();
+			new AlertDialog.Builder(this).setIcon(android.R.drawable.ic_dialog_info)
+					.setTitle(R.string.file_info_title).setMessage(R.string.video_exceed_mms_limit)
+					.setNeutralButton(R.string.details_ok, buttonListener).show();
 			return;
 		}
 
@@ -317,8 +303,7 @@ public class ImageGallery extends NoSearchActivity implements
 			Intent result = new Intent(null, img.fullSizeImageUri());
 			if (myExtras != null && myExtras.getBoolean("return-data")) {
 				// The size of a transaction should be below 100K.
-				Bitmap bitmap = img.fullSizeBitmap(IImage.UNCONSTRAINED,
-						100 * 1024);
+				Bitmap bitmap = img.fullSizeBitmap(IImage.UNCONSTRAINED, 100 * 1024);
 				if (bitmap != null) {
 					result.putExtra("data", bitmap);
 				}
@@ -331,24 +316,24 @@ public class ImageGallery extends NoSearchActivity implements
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
-		case MenuHelper.RESULT_COMMON_MENU_CROP: {
-			if (resultCode == RESULT_OK) {
+			case MenuHelper.RESULT_COMMON_MENU_CROP: {
+				if (resultCode == RESULT_OK) {
 
-				// The CropImage activity passes back the Uri of the cropped
-				// image as the Action rather than the Data.
-				// We store this URI so we can move the selection box to it
-				// later.
-				mCropResultUri = Uri.parse(data.getAction());
+					// The CropImage activity passes back the Uri of the cropped
+					// image as the Action rather than the Data.
+					// We store this URI so we can move the selection box to it
+					// later.
+					mCropResultUri = Uri.parse(data.getAction());
+				}
+				break;
 			}
-			break;
-		}
-		case CROP_MSG: {
-			if (resultCode == RESULT_OK) {
-				setResult(resultCode, data);
-				finish();
+			case CROP_MSG: {
+				if (resultCode == RESULT_OK) {
+					setResult(resultCode, data);
+					finish();
+				}
+				break;
 			}
-			break;
-		}
 		}
 	}
 
@@ -399,11 +384,11 @@ public class ImageGallery extends NoSearchActivity implements
 		mGvs.setDrawAdapter(this);
 		mGvs.setLoader(mLoader);
 		mGvs.start();
-		mNoImagesView.setVisibility(mAllImages.getCount() > 0 ? View.GONE
-				: View.VISIBLE);
+		mNoImagesView.setVisibility(mAllImages.getCount() > 0 ? View.GONE : View.VISIBLE);
 	}
-	
+
 	private String mClassId;
+
 	private IImageList checkHttpDataIfNeed() {
 		Intent intent = getIntent();
 		Uri uri = intent.getData();
@@ -424,8 +409,7 @@ public class ImageGallery extends NoSearchActivity implements
 	@Override
 	protected void onRestoreInstanceState(Bundle state) {
 		super.onRestoreInstanceState(state);
-		mScrollPosition = state.getFloat(STATE_SCROLL_POSITION,
-				INVALID_POSITION);
+		mScrollPosition = state.getFloat(STATE_SCROLL_POSITION, INVALID_POSITION);
 		mSelectedIndex = state.getInt(STATE_SELECTED_INDEX, 0);
 	}
 
@@ -433,8 +417,7 @@ public class ImageGallery extends NoSearchActivity implements
 	public void onResume() {
 		super.onResume();
 
-		mGvs.setSizeChoice(Integer.parseInt(mPrefs.getString(
-				"pref_gallery_size_key", "1")));
+		mGvs.setSizeChoice(Integer.parseInt(mPrefs.getString("pref_gallery_size_key", "1")));
 		mGvs.requestFocus();
 
 		String sortOrder = mPrefs.getString("pref_gallery_sort_key", null);
@@ -445,8 +428,7 @@ public class ImageGallery extends NoSearchActivity implements
 		mPausing = false;
 
 		// install an intent filter to receive SD card related events.
-		IntentFilter intentFilter = new IntentFilter(
-				Intent.ACTION_MEDIA_MOUNTED);
+		IntentFilter intentFilter = new IntentFilter(Intent.ACTION_MEDIA_MOUNTED);
 		intentFilter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);
 		intentFilter.addAction(Intent.ACTION_MEDIA_SCANNER_STARTED);
 		intentFilter.addAction(Intent.ACTION_MEDIA_SCANNER_FINISHED);
@@ -494,14 +476,12 @@ public class ImageGallery extends NoSearchActivity implements
 				mSlideShowItem = addSlideShowMenu(menu);
 			}
 
-			MenuItem item = menu.add(Menu.NONE, Menu.NONE,
-					MenuHelper.POSITION_GALLERY_SETTING,
+			MenuItem item = menu.add(Menu.NONE, Menu.NONE, MenuHelper.POSITION_GALLERY_SETTING,
 					R.string.camerasettings);
 			item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 				public boolean onMenuItemClick(MenuItem item) {
 					Intent preferences = new Intent();
-					preferences.setClass(ImageGallery.this,
-							GallerySettings.class);
+					preferences.setClass(ImageGallery.this, GallerySettings.class);
 					startActivity(preferences);
 					return true;
 				}
@@ -509,8 +489,8 @@ public class ImageGallery extends NoSearchActivity implements
 			item.setAlphabeticShortcut('p');
 			item.setIcon(android.R.drawable.ic_menu_preferences);
 
-			item = menu.add(Menu.NONE, Menu.NONE,
-					MenuHelper.POSITION_MULTISELECT, R.string.multiselect);
+			item = menu.add(Menu.NONE, Menu.NONE, MenuHelper.POSITION_MULTISELECT,
+					R.string.multiselect);
 			item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 				public boolean onMenuItemClick(MenuItem item) {
 					if (isInMultiSelectMode()) {
@@ -528,8 +508,7 @@ public class ImageGallery extends NoSearchActivity implements
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		if (!canHandleEvent())
-			return false;
+		if (!canHandleEvent()) return false;
 		if ((mInclusion & ImageManager.INCLUDE_IMAGES) != 0) {
 			boolean videoSelected = isVideoSelected();
 			// TODO: Only enable slide show if there is at least one image in
@@ -548,13 +527,11 @@ public class ImageGallery extends NoSearchActivity implements
 	}
 
 	private boolean isImageType(String type) {
-		return type.equals("vnd.android.cursor.dir/image")
-				|| type.equals("image/*");
+		return type.equals("vnd.android.cursor.dir/image") || type.equals("image/*");
 	}
 
 	private boolean isVideoType(String type) {
-		return type.equals("vnd.android.cursor.dir/video")
-				|| type.equals("video/*");
+		return type.equals("vnd.android.cursor.dir/video") || type.equals("video/*");
 	}
 
 	// According to the intent, setup what we include (image/video) in the
@@ -565,35 +542,29 @@ public class ImageGallery extends NoSearchActivity implements
 		Intent intent = getIntent();
 		if (intent != null) {
 			String type = intent.resolveType(this);
-			TextView leftText = (TextView) findViewById(R.id.left_text);
+			TextView leftText = (TextView)findViewById(R.id.left_text);
 			if (type != null) {
 				if (isImageType(type)) {
 					mInclusion = ImageManager.INCLUDE_IMAGES;
 					if (isPickIntent()) {
-						if (leftText != null)
-							leftText.setText(R.string.pick_photos_gallery_title);
+						if (leftText != null) leftText.setText(R.string.pick_photos_gallery_title);
 					} else {
-						if (leftText != null)
-							leftText.setText(R.string.photos_gallery_title);
+						if (leftText != null) leftText.setText(R.string.photos_gallery_title);
 					}
 				}
 				if (isVideoType(type)) {
 					mInclusion = ImageManager.INCLUDE_VIDEOS;
 					if (isPickIntent()) {
-						if (leftText != null)
-							leftText.setText(R.string.pick_videos_gallery_title);
+						if (leftText != null) leftText.setText(R.string.pick_videos_gallery_title);
 					} else {
-						if (leftText != null)
-							leftText.setText(R.string.videos_gallery_title);
+						if (leftText != null) leftText.setText(R.string.videos_gallery_title);
 					}
 				}
 			}
 			Bundle extras = intent.getExtras();
-			String title = (extras != null) ? extras.getString("windowTitle")
-					: null;
+			String title = (extras != null) ? extras.getString("windowTitle") : null;
 			if (title != null && title.length() > 0) {
-				if (leftText != null)
-					leftText.setText(title);
+				if (leftText != null) leftText.setText(title);
 			}
 
 			if (extras != null) {
@@ -615,10 +586,8 @@ public class ImageGallery extends NoSearchActivity implements
 			return ImageManager.getEmptyImageListParam();
 		} else {
 			Uri uri = getIntent().getData();
-			return ImageManager.getImageListParam(
-					ImageManager.DataLocation.EXTERNAL, mInclusion,
-					mSortAscending ? ImageManager.SORT_ASCENDING
-							: ImageManager.SORT_DESCENDING,
+			return ImageManager.getImageListParam(ImageManager.DataLocation.EXTERNAL, mInclusion,
+					mSortAscending ? ImageManager.SORT_ASCENDING : ImageManager.SORT_DESCENDING,
 					(uri != null) ? uri.getQueryParameter("bucketId") : null);
 		}
 	}
@@ -629,10 +598,8 @@ public class ImageGallery extends NoSearchActivity implements
 			mMultiSelected.remove(image);
 		}
 		mGvs.invalidate();
-		if (original == 0)
-			showFooter();
-		if (mMultiSelected.size() == 0)
-			hideFooter();
+		if (original == 0) showFooter();
+		if (mMultiSelected.size() == 0) hideFooter();
 	}
 
 	public void onImageClicked(int index) {
@@ -654,8 +621,7 @@ public class ImageGallery extends NoSearchActivity implements
 		} else {
 			Intent intent;
 			if (image instanceof VideoObject) {
-				intent = new Intent(Intent.ACTION_VIEW,
-						image.fullSizeImageUri());
+				intent = new Intent(Intent.ACTION_VIEW, image.fullSizeImageUri());
 				intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION,
 						ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 			} else {
@@ -689,12 +655,10 @@ public class ImageGallery extends NoSearchActivity implements
 	public void onImageConfirmed(int index) {
 	}
 
-	private class CreateContextMenuListener implements
-			View.OnCreateContextMenuListener {
+	private class CreateContextMenuListener implements View.OnCreateContextMenuListener {
 		public void onCreateContextMenu(ContextMenu menu, View v,
 				ContextMenu.ContextMenuInfo menuInfo) {
-			if (!canHandleEvent())
-				return;
+			if (!canHandleEvent()) return;
 
 			IImage image = getCurrentImage();
 
@@ -707,8 +671,7 @@ public class ImageGallery extends NoSearchActivity implements
 				menu.add(R.string.view).setOnMenuItemClickListener(
 						new MenuItem.OnMenuItemClickListener() {
 							public boolean onMenuItemClick(MenuItem item) {
-								if (!canHandleEvent())
-									return false;
+								if (!canHandleEvent()) return false;
 								onImageClicked(mGvs.getCurrentSelection());
 								return true;
 							}
@@ -718,9 +681,8 @@ public class ImageGallery extends NoSearchActivity implements
 			menu.setHeaderTitle(isImage ? R.string.context_menu_header
 					: R.string.video_context_menu_header);
 			if ((mInclusion & (ImageManager.INCLUDE_IMAGES | ImageManager.INCLUDE_VIDEOS)) != 0) {
-				MenuHelper.MenuItemsResult r = MenuHelper.addImageMenuItems(
-						menu, MenuHelper.INCLUDE_ALL, ImageGallery.this,
-						mHandler, mDeletePhotoRunnable,
+				MenuHelper.MenuItemsResult r = MenuHelper.addImageMenuItems(menu,
+						MenuHelper.INCLUDE_ALL, ImageGallery.this, mHandler, mDeletePhotoRunnable,
 						new MenuHelper.MenuInvoker() {
 							public void run(MenuHelper.MenuCallback cb) {
 								if (!canHandleEvent()) {
@@ -736,8 +698,7 @@ public class ImageGallery extends NoSearchActivity implements
 				}
 
 				if (isImage) {
-					MenuHelper.enableShowOnMapMenuItem(menu,
-							MenuHelper.hasLatLngData(image));
+					MenuHelper.enableShowOnMapMenuItem(menu, MenuHelper.hasLatLngData(image));
 					addSlideShowMenu(menu);
 				}
 			}
@@ -788,10 +749,9 @@ public class ImageGallery extends NoSearchActivity implements
 
 	private final Paint mPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
 
-	public static Bitmap scaleCenterCrop(Bitmap source, int sourceWidth,
-			int sourceHeight, int targetWidth, int targetHeight) {
-		Bitmap bit = Bitmap.createBitmap(targetWidth, targetHeight,
-				Config.RGB_565);
+	public static Bitmap scaleCenterCrop(Bitmap source, int sourceWidth, int sourceHeight,
+			int targetWidth, int targetHeight) {
+		Bitmap bit = Bitmap.createBitmap(targetWidth, targetHeight, Config.RGB_565);
 		Canvas canvas = new Canvas(bit);
 		Matrix matrix = new Matrix();
 
@@ -800,21 +760,20 @@ public class ImageGallery extends NoSearchActivity implements
 		float dy = 0;
 
 		if (sourceWidth * targetHeight > targetWidth * sourceHeight) {
-			scale = (float) targetHeight / (float) sourceHeight;
+			scale = (float)targetHeight / (float)sourceHeight;
 			dx = (targetWidth - sourceWidth * scale) * 0.5f;
 		} else {
-			scale = (float) targetWidth / (float) sourceWidth;
+			scale = (float)targetWidth / (float)sourceWidth;
 			dy = (targetHeight - sourceHeight * scale) * 0.5f;
 		}
 		matrix.setScale(scale, scale);
-		matrix.postTranslate((int) (dx + 0.5f), (int) (dy + 0.5f));
+		matrix.postTranslate((int)(dx + 0.5f), (int)(dy + 0.5f));
 
 		canvas.drawBitmap(source, matrix, null);
 		return bit;
 	}
 
-	public void drawImage(Canvas canvas, IImage image, Bitmap b, int xPos,
-			int yPos, int w, int h) {
+	public void drawImage(Canvas canvas, IImage image, Bitmap b, int xPos, int yPos, int w, int h) {
 		if (b != null) {
 			// if the image is close to the target size then crop,
 			// otherwise scale both the bitmap and the view should be
@@ -829,8 +788,7 @@ public class ImageGallery extends NoSearchActivity implements
 			if (deltaW >= 0 && deltaW < 10 && deltaH >= 0 && deltaH < 10) {
 				int halfDeltaW = deltaW / 2;
 				int halfDeltaH = deltaH / 2;
-				mSrcRect.set(0 + halfDeltaW, 0 + halfDeltaH, bw - halfDeltaW,
-						bh - halfDeltaH);
+				mSrcRect.set(0 + halfDeltaW, 0 + halfDeltaH, bw - halfDeltaW, bh - halfDeltaH);
 				mDstRect.set(xPos, yPos, xPos + w, yPos + h);
 				canvas.drawBitmap(b, mSrcRect, mDstRect, null);
 			} else {
@@ -859,8 +817,7 @@ public class ImageGallery extends NoSearchActivity implements
 			long size = MenuHelper.getImageFileSize(image);
 			if (size >= 0 && size <= mVideoSizeLimit) {
 				if (mVideoOverlay == null) {
-					mVideoOverlay = getResources().getDrawable(
-							R.drawable.ic_gallery_video_overlay);
+					mVideoOverlay = getResources().getDrawable(R.drawable.ic_gallery_video_overlay);
 				}
 				overlay = mVideoOverlay;
 			} else {
@@ -887,8 +844,7 @@ public class ImageGallery extends NoSearchActivity implements
 		return (mMultiSelected != null);
 	}
 
-	public void drawDecoration(Canvas canvas, IImage image, int xPos, int yPos,
-			int w, int h) {
+	public void drawDecoration(Canvas canvas, IImage image, int xPos, int yPos, int w, int h) {
 		if (mMultiSelected != null) {
 			initializeMultiSelectDrawables();
 
@@ -906,12 +862,10 @@ public class ImageGallery extends NoSearchActivity implements
 
 	private void initializeMultiSelectDrawables() {
 		if (mMultiSelectTrue == null) {
-			mMultiSelectTrue = getResources().getDrawable(
-					R.drawable.btn_check_buttonless_on);
+			mMultiSelectTrue = getResources().getDrawable(R.drawable.btn_check_buttonless_on);
 		}
 		if (mMultiSelectFalse == null) {
-			mMultiSelectFalse = getResources().getDrawable(
-					R.drawable.btn_check_buttonless_off);
+			mMultiSelectFalse = getResources().getDrawable(R.drawable.btn_check_buttonless_off);
 		}
 	}
 
@@ -923,15 +877,14 @@ public class ImageGallery extends NoSearchActivity implements
 	public Bitmap getErrorBitmap(IImage image) {
 		if (ImageManager.isImage(image)) {
 			if (mMissingImageThumbnailBitmap == null) {
-				mMissingImageThumbnailBitmap = BitmapFactory
-						.decodeResource(getResources(),
-								R.drawable.ic_missing_thumbnail_picture);
+				mMissingImageThumbnailBitmap = BitmapFactory.decodeResource(getResources(),
+						R.drawable.ic_missing_thumbnail_picture);
 			}
 			return mMissingImageThumbnailBitmap;
 		} else {
 			if (mMissingVideoThumbnailBitmap == null) {
-				mMissingVideoThumbnailBitmap = BitmapFactory.decodeResource(
-						getResources(), R.drawable.ic_missing_thumbnail_video);
+				mMissingVideoThumbnailBitmap = BitmapFactory.decodeResource(getResources(),
+						R.drawable.ic_missing_thumbnail_video);
 			}
 			return mMissingVideoThumbnailBitmap;
 		}
@@ -943,8 +896,7 @@ public class ImageGallery extends NoSearchActivity implements
 	private void showFooter() {
 		mFooterOrganizeView.setVisibility(View.VISIBLE);
 		if (mFooterAppear == null) {
-			mFooterAppear = AnimationUtils.loadAnimation(this,
-					R.anim.footer_appear);
+			mFooterAppear = AnimationUtils.loadAnimation(this, R.anim.footer_appear);
 		}
 		mFooterOrganizeView.startAnimation(mFooterAppear);
 	}
@@ -953,8 +905,7 @@ public class ImageGallery extends NoSearchActivity implements
 		if (mFooterOrganizeView.getVisibility() != View.GONE) {
 			mFooterOrganizeView.setVisibility(View.GONE);
 			if (mFooterDisappear == null) {
-				mFooterDisappear = AnimationUtils.loadAnimation(this,
-						R.anim.footer_disappear);
+				mFooterDisappear = AnimationUtils.loadAnimation(this, R.anim.footer_disappear);
 			}
 			mFooterOrganizeView.startAnimation(mFooterDisappear);
 		}
@@ -966,13 +917,11 @@ public class ImageGallery extends NoSearchActivity implements
 		for (IImage image : mMultiSelected) {
 			flag |= ImageManager.isImage(image) ? FLAG_IMAGE : FLAG_VIDEO;
 		}
-		return flag == FLAG_IMAGE ? "image/*" : flag == FLAG_VIDEO ? "video/*"
-				: "*/*";
+		return flag == FLAG_IMAGE ? "image/*" : flag == FLAG_VIDEO ? "video/*" : "*/*";
 	}
 
 	private void onShareMultipleClicked() {
-		if (mMultiSelected == null)
-			return;
+		if (mMultiSelected == null) return;
 		if (mMultiSelected.size() > 1) {
 			Intent intent = new Intent();
 			intent.setAction(Intent.ACTION_SEND_MULTIPLE);
@@ -985,11 +934,9 @@ public class ImageGallery extends NoSearchActivity implements
 			}
 			intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, list);
 			try {
-				startActivity(Intent.createChooser(intent,
-						getText(R.string.send_media_files)));
+				startActivity(Intent.createChooser(intent, getText(R.string.send_media_files)));
 			} catch (android.content.ActivityNotFoundException ex) {
-				Toast.makeText(this, R.string.no_way_to_share,
-						Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, R.string.no_way_to_share, Toast.LENGTH_SHORT).show();
 			}
 		} else if (mMultiSelected.size() == 1) {
 			IImage image = mMultiSelected.iterator().next();
@@ -1000,22 +947,18 @@ public class ImageGallery extends NoSearchActivity implements
 			intent.putExtra(Intent.EXTRA_STREAM, image.fullSizeImageUri());
 			boolean isImage = ImageManager.isImage(image);
 			try {
-				startActivity(Intent.createChooser(intent,
-						getText(isImage ? R.string.sendImage
-								: R.string.sendVideo)));
+				startActivity(Intent.createChooser(intent, getText(isImage ? R.string.sendImage
+						: R.string.sendVideo)));
 			} catch (android.content.ActivityNotFoundException ex) {
-				Toast.makeText(
-						this,
-						isImage ? R.string.no_way_to_share_image
-								: R.string.no_way_to_share_video,
+				Toast.makeText(this,
+						isImage ? R.string.no_way_to_share_image : R.string.no_way_to_share_video,
 						Toast.LENGTH_SHORT).show();
 			}
 		}
 	}
 
 	private void onDeleteMultipleClicked() {
-		if (mMultiSelected == null)
-			return;
+		if (mMultiSelected == null) return;
 		Runnable action = new Runnable() {
 			public void run() {
 				ArrayList<Uri> uriList = new ArrayList<Uri>();
@@ -1040,16 +983,14 @@ public class ImageGallery extends NoSearchActivity implements
 	}
 
 	private void closeMultiSelectMode() {
-		if (mMultiSelected == null)
-			return;
+		if (mMultiSelected == null) return;
 		mMultiSelected = null;
 		mGvs.invalidate();
 		hideFooter();
 	}
 
 	private void openMultiSelectMode() {
-		if (mMultiSelected != null)
-			return;
+		if (mMultiSelected != null) return;
 		mMultiSelected = new HashSet<IImage>();
 		mGvs.invalidate();
 	}

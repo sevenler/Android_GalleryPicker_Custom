@@ -40,24 +40,18 @@ public class VideoObject extends BaseImage implements IImage {
 	/**
 	 * Constructor.
 	 * 
-	 * @param id
-	 *            the image id of the image
-	 * @param cr
-	 *            the content resolver
+	 * @param id the image id of the image
+	 * @param cr the content resolver
 	 */
-	protected VideoObject(BaseImageList container, ContentResolver cr, long id,
-			int index, Uri uri, String dataPath, String mimeType,
-			long dateTaken, String title) {
-		super(container, cr, id, index, uri, dataPath, mimeType, dateTaken,
-				title);
+	protected VideoObject(BaseImageList container, ContentResolver cr, long id, int index, Uri uri,
+			String dataPath, String mimeType, long dateTaken, String title) {
+		super(container, cr, id, index, uri, dataPath, mimeType, dateTaken, title);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (other == null || !(other instanceof VideoObject))
-			return false;
-		return fullSizeImageUri().equals(
-				((VideoObject) other).fullSizeImageUri());
+		if (other == null || !(other instanceof VideoObject)) return false;
+		return fullSizeImageUri().equals(((VideoObject)other).fullSizeImageUri());
 	}
 
 	@Override
@@ -66,17 +60,15 @@ public class VideoObject extends BaseImage implements IImage {
 	}
 
 	@Override
-	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels,
-			boolean rotateAsNeeded, boolean useNative) {
-		return ThumbnailUtils.createVideoThumbnail(mDataPath,
-				Video.Thumbnails.MINI_KIND);
+	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels, boolean rotateAsNeeded,
+			boolean useNative) {
+		return ThumbnailUtils.createVideoThumbnail(mDataPath, Video.Thumbnails.MINI_KIND);
 	}
 
 	@Override
 	public InputStream fullSizeImageData() {
 		try {
-			InputStream input = mContentResolver
-					.openInputStream(fullSizeImageUri());
+			InputStream input = mContentResolver.openInputStream(fullSizeImageUri());
 			return input;
 		} catch (IOException ex) {
 			return null;

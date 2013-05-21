@@ -52,7 +52,7 @@ public class DeleteImage extends NoSearchActivity {
 			finish();
 		}
 		setContentView(R.layout.delete_image);
-		mProgressBar = (ProgressBar) findViewById(R.id.delete_progress);
+		mProgressBar = (ProgressBar)findViewById(R.id.delete_progress);
 		mContentResolver = getContentResolver();
 	}
 
@@ -64,8 +64,7 @@ public class DeleteImage extends NoSearchActivity {
 	}
 
 	private void deleteNext() {
-		if (mPausing)
-			return;
+		if (mPausing) return;
 		if (mIndex >= mUriList.size()) {
 			finish();
 			return;

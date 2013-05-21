@@ -132,7 +132,7 @@ public class ImageLoader {
 					}
 				}
 
-				//网络数据请求thumbBitmap
+				// 网络数据请求thumbBitmap
 				IImage image = workItem.mImage;
 				final Bitmap b = ((image instanceof UrlImage) ? image.thumbBitmap(false) : image
 						.miniThumbBitmap());

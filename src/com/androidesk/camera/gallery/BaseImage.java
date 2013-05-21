@@ -60,9 +60,8 @@ public abstract class BaseImage implements IImage {
 	private int mWidth = UNKNOWN_LENGTH;
 	private int mHeight = UNKNOWN_LENGTH;
 
-	protected BaseImage(BaseImageList container, ContentResolver cr, long id,
-			int index, Uri uri, String dataPath, String mimeType,
-			long dateTaken, String title) {
+	protected BaseImage(BaseImageList container, ContentResolver cr, long id, int index, Uri uri,
+			String dataPath, String mimeType, long dateTaken, String title) {
 		mContainer = container;
 		mContentResolver = cr;
 		mId = id;
@@ -80,9 +79,8 @@ public abstract class BaseImage implements IImage {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other == null || !(other instanceof Image))
-			return false;
-		return mUri.equals(((Image) other).mUri);
+		if (other == null || !(other instanceof Image)) return false;
+		return mUri.equals(((Image)other).mUri);
 	}
 
 	@Override
@@ -91,18 +89,17 @@ public abstract class BaseImage implements IImage {
 	}
 
 	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels) {
-		return fullSizeBitmap(minSideLength, maxNumberOfPixels,
-				IImage.ROTATE_AS_NEEDED, IImage.NO_NATIVE);
+		return fullSizeBitmap(minSideLength, maxNumberOfPixels, IImage.ROTATE_AS_NEEDED,
+				IImage.NO_NATIVE);
 	}
 
-	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels,
-			boolean rotateAsNeeded, boolean useNative) {
+	public Bitmap fullSizeBitmap(int minSideLength, int maxNumberOfPixels, boolean rotateAsNeeded,
+			boolean useNative) {
 		Uri url = mContainer.contentUri(mId);
-		if (url == null)
-			return null;
+		if (url == null) return null;
 
-		Bitmap b = Util.makeBitmap(minSideLength, maxNumberOfPixels, url,
-				mContentResolver, useNative);
+		Bitmap b = Util.makeBitmap(minSideLength, maxNumberOfPixels, url, mContentResolver,
+				useNative);
 
 		if (b != null && rotateAsNeeded) {
 			b = Util.rotate(b, getDegreesRotated());
@@ -150,8 +147,7 @@ public abstract class BaseImage implements IImage {
 			input = mContentResolver.openFileDescriptor(mUri, "r");
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
-			BitmapManager.instance().decodeFileDescriptor(
-					input.getFileDescriptor(), options);
+			BitmapManager.instance().decodeFileDescriptor(input.getFileDescriptor(), options);
 			mWidth = options.outWidth;
 			mHeight = options.outHeight;
 		} catch (FileNotFoundException ex) {
@@ -163,14 +159,12 @@ public abstract class BaseImage implements IImage {
 	}
 
 	public int getWidth() {
-		if (mWidth == UNKNOWN_LENGTH)
-			setupDimension();
+		if (mWidth == UNKNOWN_LENGTH) setupDimension();
 		return mWidth;
 	}
 
 	public int getHeight() {
-		if (mHeight == UNKNOWN_LENGTH)
-			setupDimension();
+		if (mHeight == UNKNOWN_LENGTH) setupDimension();
 		return mHeight;
 	}
 
@@ -206,8 +200,7 @@ public abstract class BaseImage implements IImage {
 	}
 
 	public static Bitmap ensureGLCompatibleBitmap(Bitmap bitmap) {
-		if (bitmap == null || bitmap.getConfig() != null)
-			return bitmap;
+		if (bitmap == null || bitmap.getConfig() != null) return bitmap;
 		Bitmap newBitmap = bitmap.copy(Config.ARGB_8888, false);
 		bitmap.recycle();
 		return newBitmap;
@@ -215,21 +208,17 @@ public abstract class BaseImage implements IImage {
 
 	public static int computeSampleSizeLarger(int w, int h, int minSideLength) {
 		int initialSize = Math.max(w / minSideLength, h / minSideLength);
-		if (initialSize <= 1)
-			return 1;
+		if (initialSize <= 1) return 1;
 
-		return initialSize <= 8 ? prevPowerOf2(initialSize)
-				: initialSize / 8 * 8;
+		return initialSize <= 8 ? prevPowerOf2(initialSize) : initialSize / 8 * 8;
 	}
 
 	public static int prevPowerOf2(int n) {
-		if (n <= 0)
-			throw new IllegalArgumentException();
+		if (n <= 0) throw new IllegalArgumentException();
 		return Integer.highestOneBit(n);
 	}
 
-	public static Bitmap requestDecode(final String filePath, Options options,
-			int targetSize) {
+	public static Bitmap requestDecode(final String filePath, Options options, int targetSize) {
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(filePath);
@@ -244,8 +233,7 @@ public abstract class BaseImage implements IImage {
 	}
 
 	public static void closeSilently(Closeable c) {
-		if (c == null)
-			return;
+		if (c == null) return;
 		try {
 			c.close();
 		} catch (Throwable t) {
@@ -253,16 +241,14 @@ public abstract class BaseImage implements IImage {
 		}
 	}
 
-	public static Bitmap requestDecode(FileDescriptor fd, Options options,
-			int targetSize) {
-		if (options == null)
-			options = new Options();
+	public static Bitmap requestDecode(FileDescriptor fd, Options options, int targetSize) {
+		if (options == null) options = new Options();
 
 		options.inJustDecodeBounds = true;
 		BitmapFactory.decodeFileDescriptor(fd, null, options);
 
-		options.inSampleSize = computeSampleSizeLarger(options.outWidth,
-				options.outHeight, targetSize);
+		options.inSampleSize = computeSampleSizeLarger(options.outWidth, options.outHeight,
+				targetSize);
 		options.inJustDecodeBounds = false;
 
 		Bitmap result = BitmapFactory.decodeFileDescriptor(fd, null, options);

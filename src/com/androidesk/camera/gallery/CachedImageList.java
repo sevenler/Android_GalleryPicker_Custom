@@ -19,8 +19,8 @@ public class CachedImageList implements IImageList {
 	protected void cache(int i, IImage img) {
 		mCache.put(i, img);
 	}
-	
-	protected IImage getCache(int i){
+
+	protected IImage getCache(int i) {
 		return mCache.get(i);
 	}
 

@@ -18,7 +18,6 @@ package com.androidesk.camera;
 
 import static com.androidesk.camera.Util.Assert;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
 import android.annotation.TargetApi;
@@ -64,19 +63,17 @@ class GridViewSpecial extends View {
 		/**
 		 * Invoked when the <code>GridViewSpecial</code> scrolls.
 		 * 
-		 * @param scrollPosition
-		 *            the position of the scroller in the range [0, 1], when 0
-		 *            means on the top and 1 means on the buttom
+		 * @param scrollPosition the position of the scroller in the range [0,
+		 *            1], when 0 means on the top and 1 means on the buttom
 		 */
 		public void onScroll(float scrollPosition);
 	}
 
 	public static interface DrawAdapter {
-		public void drawImage(Canvas canvas, IImage image, Bitmap b, int xPos,
-				int yPos, int w, int h);
+		public void drawImage(Canvas canvas, IImage image, Bitmap b, int xPos, int yPos, int w,
+				int h);
 
-		public void drawDecoration(Canvas canvas, IImage image, int xPos,
-				int yPos, int w, int h);
+		public void drawDecoration(Canvas canvas, IImage image, int xPos, int yPos, int w, int h);
 
 		public boolean needsDecoration();
 	}
@@ -87,8 +84,7 @@ class GridViewSpecial extends View {
 	// The mLeftEdgePadding fields is filled in onLayout(). See the comments
 	// in onLayout() for details.
 	static class LayoutSpec {
-		LayoutSpec(int w, int h, int intercellSpacing, int leftEdgePadding,
-				DisplayMetrics metrics) {
+		LayoutSpec(int w, int h, int intercellSpacing, int leftEdgePadding, DisplayMetrics metrics) {
 			mCellWidth = dpToPx(w, metrics);
 			mCellHeight = dpToPx(h, metrics);
 			mCellSpacing = dpToPx(intercellSpacing, metrics);
@@ -107,26 +103,23 @@ class GridViewSpecial extends View {
 	private static final int COLUMN_WIDTH_MATH = 250;// 单位dp
 
 	private void initCellSize() {
-		Activity a = (Activity) getContext();
+		Activity a = (Activity)getContext();
 		DisplayMetrics metrics = new DisplayMetrics();
 		a.getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-		int width = (int) (pxToDp(metrics.widthPixels, metrics) - CEL_SPECING
-				* CEL_SPECING * 2)
+		int width = (int)(pxToDp(metrics.widthPixels, metrics) - CEL_SPECING * CEL_SPECING * 2)
 				/ COLUMN_NO;
 		if (width >= COLUMN_WIDTH_MATH) {
-			width = (int) (pxToDp(metrics.widthPixels, metrics) - CEL_SPECING
-					* CEL_SPECING * 2)
+			width = (int)(pxToDp(metrics.widthPixels, metrics) - CEL_SPECING * CEL_SPECING * 2)
 					/ (COLUMN_NO + 1);
 		}
-		mCellSizeChoices = new LayoutSpec[] {
-				new LayoutSpec(67, 67, 8, 0, metrics),
+		mCellSizeChoices = new LayoutSpec[] { new LayoutSpec(67, 67, 8, 0, metrics),
 				new LayoutSpec(width, width, CEL_SPECING, 0, metrics), };
 	}
 
 	// Converts dp to pixel.
 	private static int dpToPx(int dp, DisplayMetrics metrics) {
-		return (int) (metrics.density * dp);
+		return (int)(metrics.density * dp);
 	}
 
 	private float pxToDp(float pxValue, DisplayMetrics metrics) {
@@ -174,8 +167,7 @@ class GridViewSpecial extends View {
 
 	private void init(Context context) {
 		setVerticalScrollBarEnabled(true);
-		initializeScrollbars(context
-				.obtainStyledAttributes(R.styleable.scrollbar));
+		initializeScrollbars(context.obtainStyledAttributes(R.styleable.scrollbar));
 		mGestureDetector = new GestureDetector(context, new MyGestureDetector());
 		setFocusableInTouchMode(true);
 		initCellSize();
@@ -216,15 +208,13 @@ class GridViewSpecial extends View {
 
 	public void setSizeChoice(int choice) {
 		Assert(mRunning == false);
-		if (mSizeChoice == choice)
-			return;
+		if (mSizeChoice == choice) return;
 		mSizeChoice = choice;
 	}
 
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	@Override
-	public void onLayout(boolean changed, int left, int top, int right,
-			int bottom) {
+	public void onLayout(boolean changed, int left, int top, int right, int bottom) {
 		super.onLayout(changed, left, top, right, bottom);
 
 		if (!mRunning) {
@@ -246,15 +236,13 @@ class GridViewSpecial extends View {
 		//
 		// CellSpacing (CellHeight CellSpacing)+
 
-		mColumns = 1 + (width - mSpec.mCellWidth)
-				/ (mSpec.mCellWidth + mSpec.mCellSpacing);
+		mColumns = 1 + (width - mSpec.mCellWidth) / (mSpec.mCellWidth + mSpec.mCellSpacing);
 
 		mSpec.mLeftEdgePadding = (width - ((mColumns - 1) * mSpec.mCellSpacing) - (mColumns * mSpec.mCellWidth)) / 2;
 
 		mRows = (mCount + mColumns - 1) / mColumns;
 		mBlockHeight = mSpec.mCellSpacing + mSpec.mCellHeight;
-		mMaxScrollY = mSpec.mCellSpacing + (mRows * mBlockHeight)
-				- (bottom - top);
+		mMaxScrollY = mSpec.mCellSpacing + (mRows * mBlockHeight) - (bottom - top);
 
 		// Put mScrollY in the valid range. This matters if mMaxScrollY is
 		// changed. For example, orientation changed from portrait to landscape.
@@ -268,9 +256,8 @@ class GridViewSpecial extends View {
 			mImageBlockManager.recycle();
 		}
 
-		mImageBlockManager = new ImageBlockManager(mHandler, mRedrawCallback,
-				mAllImages, mLoader, mDrawAdapter, mSpec, mColumns, width,
-				mOutline[OUTLINE_EMPTY]);
+		mImageBlockManager = new ImageBlockManager(mHandler, mRedrawCallback, mAllImages, mLoader,
+				mDrawAdapter, mSpec, mColumns, width, mOutline[OUTLINE_EMPTY]);
 
 		mListener.onLayoutComplete(changed);
 
@@ -311,8 +298,7 @@ class GridViewSpecial extends View {
 		cellOutline.draw(canvas);
 
 		canvas.setBitmap(mOutline[OUTLINE_PRESSED]);
-		cellOutline
-				.setState(PRESSED_ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET);
+		cellOutline.setState(PRESSED_ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET);
 		cellOutline.draw(canvas);
 
 		canvas.setBitmap(mOutline[OUTLINE_SELECTED]);
@@ -323,8 +309,7 @@ class GridViewSpecial extends View {
 	private void moveDataWindow() {
 		// Calculate visible region according to scroll position.
 		int startRow = (getScrollY() - mSpec.mCellSpacing) / mBlockHeight;
-		int endRow = (getScrollY() + getHeight() - mSpec.mCellSpacing - 1)
-				/ mBlockHeight + 1;
+		int endRow = (getScrollY() + getHeight() - mSpec.mCellSpacing - 1) / mBlockHeight + 1;
 
 		// Limit startRow and endRow to the valid range.
 		// Make sure we handle the mRows == 0 case right.
@@ -341,14 +326,13 @@ class GridViewSpecial extends View {
 
 		@Override
 		public boolean onSingleTapUp(MotionEvent e) {
-			if (!canHandleEvent())
-				return false;
+			if (!canHandleEvent()) return false;
 			int index = computeSelectedIndex(e.getX(), e.getY());
 			if (index >= 0 && index < mCount) {
 				// Play click sound.
 				if (mAudioManager == null) {
-					mAudioManager = (AudioManager) getContext()
-							.getSystemService(Context.AUDIO_SERVICE);
+					mAudioManager = (AudioManager)getContext().getSystemService(
+							Context.AUDIO_SERVICE);
 				}
 				mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
 
@@ -360,8 +344,7 @@ class GridViewSpecial extends View {
 
 		@Override
 		public boolean onDown(MotionEvent e) {
-			if (!canHandleEvent())
-				return false;
+			if (!canHandleEvent()) return false;
 			if (mScroller != null && !mScroller.isFinished()) {
 				mScroller.forceFinished(true);
 				return false;
@@ -376,10 +359,8 @@ class GridViewSpecial extends View {
 		}
 
 		@Override
-		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-				float velocityY) {
-			if (!canHandleEvent())
-				return false;
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+			if (!canHandleEvent()) return false;
 			if (velocityY > MAX_FLING_VELOCITY) {
 				velocityY = MAX_FLING_VELOCITY;
 			} else if (velocityY < -MAX_FLING_VELOCITY) {
@@ -388,8 +369,7 @@ class GridViewSpecial extends View {
 
 			setSelectedIndex(INDEX_NONE);
 			mScroller = new Scroller(getContext());
-			mScroller.fling(0, getScrollY(), 0, -(int) velocityY, 0, 0, 0,
-					mMaxScrollY);
+			mScroller.fling(0, getScrollY(), 0, -(int)velocityY, 0, 0, 0, mMaxScrollY);
 			computeScroll();
 
 			return true;
@@ -397,32 +377,28 @@ class GridViewSpecial extends View {
 
 		@Override
 		public void onLongPress(MotionEvent e) {
-			if (!canHandleEvent())
-				return;
+			if (!canHandleEvent()) return;
 			performLongClick();
 		}
 
 		@Override
-		public boolean onScroll(MotionEvent e1, MotionEvent e2,
-				float distanceX, float distanceY) {
-			if (!canHandleEvent())
-				return false;
+		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+			if (!canHandleEvent()) return false;
 			setSelectedIndex(INDEX_NONE);
-			scrollBy(0, (int) distanceY);
+			scrollBy(0, (int)distanceY);
 			invalidate();
 			return true;
 		}
 
 		@Override
 		public boolean onSingleTapConfirmed(MotionEvent e) {
-			if (!canHandleEvent())
-				return false;
+			if (!canHandleEvent()) return false;
 			int index = computeSelectedIndex(e.getX(), e.getY());
 			if (index >= 0 && index < mCount) {
 				// Play click sound.
 				if (mAudioManager == null) {
-					mAudioManager = (AudioManager) getContext()
-							.getSystemService(Context.AUDIO_SERVICE);
+					mAudioManager = (AudioManager)getContext().getSystemService(
+							Context.AUDIO_SERVICE);
 				}
 				mAudioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
 
@@ -444,9 +420,7 @@ class GridViewSpecial extends View {
 	}
 
 	/**
-	 * 
-	 * @param index
-	 *            <code>INDEX_NONE</code> (-1) means remove selection.
+	 * @param index <code>INDEX_NONE</code> (-1) means remove selection.
 	 */
 	public void setSelectedIndex(int index) {
 		// A selection box will be shown for the image that being selected,
@@ -492,13 +466,12 @@ class GridViewSpecial extends View {
 
 		if (r.bottom > bot) {
 			mScroller = new Scroller(getContext());
-			mScroller.startScroll(getScrollX(), getScrollY(), 0, r.bottom
-					- getHeight() - getScrollY(), 200);
+			mScroller.startScroll(getScrollX(), getScrollY(), 0, r.bottom - getHeight()
+					- getScrollY(), 200);
 			computeScroll();
 		} else if (r.top < top) {
 			mScroller = new Scroller(getContext());
-			mScroller.startScroll(getScrollX(), getScrollY(), 0, r.top
-					- getScrollY(), 200);
+			mScroller.startScroll(getScrollX(), getScrollY(), 0, r.top - getScrollY(), 200);
 			computeScroll();
 		}
 	}
@@ -536,10 +509,8 @@ class GridViewSpecial extends View {
 	@Override
 	public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		if (!canHandleEvent())
-			return;
-		mImageBlockManager
-				.doDraw(canvas, getWidth(), getHeight(), getScrollY());
+		if (!canHandleEvent()) return;
+		mImageBlockManager.doDraw(canvas, getWidth(), getHeight(), getScrollY());
 		paintDecoration(canvas);
 		paintSelection(canvas);
 		moveDataWindow();
@@ -565,26 +536,23 @@ class GridViewSpecial extends View {
 		int row = pos / mColumns;
 		int col = pos - (row * mColumns);
 
-		int left = mSpec.mLeftEdgePadding
-				+ (col * (mSpec.mCellWidth + mSpec.mCellSpacing));
+		int left = mSpec.mLeftEdgePadding + (col * (mSpec.mCellWidth + mSpec.mCellSpacing));
 		int top = row * mBlockHeight;
 
-		return new Rect(left, top,
-				left + mSpec.mCellWidth + mSpec.mCellSpacing, top
-						+ mSpec.mCellHeight + mSpec.mCellSpacing);
+		return new Rect(left, top, left + mSpec.mCellWidth + mSpec.mCellSpacing, top
+				+ mSpec.mCellHeight + mSpec.mCellSpacing);
 	}
 
 	// Inverse of getRectForPosition: from screen coordinate to image position.
 	int computeSelectedIndex(float xFloat, float yFloat) {
-		int x = (int) xFloat;
-		int y = (int) yFloat;
+		int x = (int)xFloat;
+		int y = (int)yFloat;
 
 		int spacing = mSpec.mCellSpacing;
 		int leftSpacing = mSpec.mLeftEdgePadding;
 
 		int row = (getScrollY() + y - spacing) / (mSpec.mCellHeight + spacing);
-		int col = Math.min(mColumns - 1, (x - leftSpacing)
-				/ (mSpec.mCellWidth + spacing));
+		int col = Math.min(mColumns - 1, (x - leftSpacing) / (mSpec.mCellWidth + spacing));
 		return (row * mColumns) + col;
 	}
 
@@ -594,14 +562,14 @@ class GridViewSpecial extends View {
 			return false;
 		}
 		switch (ev.getAction()) {
-		case MotionEvent.ACTION_DOWN:
-			mCurrentPressState |= TAPPING_FLAG;
-			invalidate();
-			break;
-		case MotionEvent.ACTION_UP:
-			mCurrentPressState &= ~TAPPING_FLAG;
-			invalidate();
-			break;
+			case MotionEvent.ACTION_DOWN:
+				mCurrentPressState |= TAPPING_FLAG;
+				invalidate();
+				break;
+			case MotionEvent.ACTION_UP:
+				mCurrentPressState &= ~TAPPING_FLAG;
+				invalidate();
+				break;
 		}
 		mGestureDetector.onTouchEvent(ev);
 		// Consume all events
@@ -621,7 +589,7 @@ class GridViewSpecial extends View {
 	public void scrollTo(int x, int y) {
 		y = Math.max(0, Math.min(mMaxScrollY, y));
 		if (mSpec != null) {
-			mListener.onScroll((float) getScrollY() / mMaxScrollY);
+			mListener.onScroll((float)getScrollY() / mMaxScrollY);
 		}
 		super.scrollTo(x, y);
 	}
@@ -639,57 +607,55 @@ class GridViewSpecial extends View {
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (!canHandleEvent())
-			return false;
+		if (!canHandleEvent()) return false;
 		int sel = mCurrentSelection;
 		if (sel != INDEX_NONE) {
 			switch (keyCode) {
-			case KeyEvent.KEYCODE_DPAD_RIGHT:
-				if (sel != mCount - 1 && (sel % mColumns < mColumns - 1)) {
-					sel += 1;
-				}
-				break;
-			case KeyEvent.KEYCODE_DPAD_LEFT:
-				if (sel > 0 && (sel % mColumns != 0)) {
-					sel -= 1;
-				}
-				break;
-			case KeyEvent.KEYCODE_DPAD_UP:
-				if (sel >= mColumns) {
-					sel -= mColumns;
-				}
-				break;
-			case KeyEvent.KEYCODE_DPAD_DOWN:
-				sel = Math.min(mCount - 1, sel + mColumns);
-				break;
-			case KeyEvent.KEYCODE_DPAD_CENTER:
-				if (event.getRepeatCount() == 0) {
-					mCurrentPressState |= CLICKING_FLAG;
-					mHandler.postDelayed(mLongPressCallback,
-							ViewConfiguration.getLongPressTimeout());
-				}
-				break;
-			default:
-				return super.onKeyDown(keyCode, event);
+				case KeyEvent.KEYCODE_DPAD_RIGHT:
+					if (sel != mCount - 1 && (sel % mColumns < mColumns - 1)) {
+						sel += 1;
+					}
+					break;
+				case KeyEvent.KEYCODE_DPAD_LEFT:
+					if (sel > 0 && (sel % mColumns != 0)) {
+						sel -= 1;
+					}
+					break;
+				case KeyEvent.KEYCODE_DPAD_UP:
+					if (sel >= mColumns) {
+						sel -= mColumns;
+					}
+					break;
+				case KeyEvent.KEYCODE_DPAD_DOWN:
+					sel = Math.min(mCount - 1, sel + mColumns);
+					break;
+				case KeyEvent.KEYCODE_DPAD_CENTER:
+					if (event.getRepeatCount() == 0) {
+						mCurrentPressState |= CLICKING_FLAG;
+						mHandler.postDelayed(mLongPressCallback,
+								ViewConfiguration.getLongPressTimeout());
+					}
+					break;
+				default:
+					return super.onKeyDown(keyCode, event);
 			}
 		} else {
 			switch (keyCode) {
-			case KeyEvent.KEYCODE_DPAD_RIGHT:
-			case KeyEvent.KEYCODE_DPAD_LEFT:
-			case KeyEvent.KEYCODE_DPAD_UP:
-			case KeyEvent.KEYCODE_DPAD_DOWN:
-				int startRow = (getScrollY() - mSpec.mCellSpacing)
-						/ mBlockHeight;
-				int topPos = startRow * mColumns;
-				Rect r = getRectForPosition(topPos);
-				if (r.top < getScrollY()) {
-					topPos += mColumns;
-				}
-				topPos = Math.min(mCount - 1, topPos);
-				sel = topPos;
-				break;
-			default:
-				return super.onKeyDown(keyCode, event);
+				case KeyEvent.KEYCODE_DPAD_RIGHT:
+				case KeyEvent.KEYCODE_DPAD_LEFT:
+				case KeyEvent.KEYCODE_DPAD_UP:
+				case KeyEvent.KEYCODE_DPAD_DOWN:
+					int startRow = (getScrollY() - mSpec.mCellSpacing) / mBlockHeight;
+					int topPos = startRow * mColumns;
+					Rect r = getRectForPosition(topPos);
+					if (r.top < getScrollY()) {
+						topPos += mColumns;
+					}
+					topPos = Math.min(mCount - 1, topPos);
+					sel = topPos;
+					break;
+				default:
+					return super.onKeyDown(keyCode, event);
 			}
 		}
 		setSelectedIndex(sel);
@@ -698,8 +664,7 @@ class GridViewSpecial extends View {
 
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		if (!canHandleEvent())
-			return false;
+		if (!canHandleEvent()) return false;
 
 		if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
 			mCurrentPressState &= ~CLICKING_FLAG;
@@ -718,13 +683,11 @@ class GridViewSpecial extends View {
 	}
 
 	private void paintDecoration(Canvas canvas) {
-		if (!mDrawAdapter.needsDecoration())
-			return;
+		if (!mDrawAdapter.needsDecoration()) return;
 
 		// Calculate visible region according to scroll position.
 		int startRow = (getScrollY() - mSpec.mCellSpacing) / mBlockHeight;
-		int endRow = (getScrollY() + getHeight() - mSpec.mCellSpacing - 1)
-				/ mBlockHeight + 1;
+		int endRow = (getScrollY() + getHeight() - mSpec.mCellSpacing - 1) / mBlockHeight + 1;
 
 		// Limit startRow and endRow to the valid range.
 		// Make sure we handle the mRows == 0 case right.
@@ -740,8 +703,8 @@ class GridViewSpecial extends View {
 		for (int i = startIndex; i < endIndex; i++) {
 			IImage image = mAllImages.getImageAt(i);
 
-			mDrawAdapter.drawDecoration(canvas, image, xPos, yPos,
-					mSpec.mCellWidth, mSpec.mCellHeight);
+			mDrawAdapter.drawDecoration(canvas, image, xPos, yPos, mSpec.mCellWidth,
+					mSpec.mCellHeight);
 
 			// Calculate next position
 			off += 1;
@@ -756,8 +719,7 @@ class GridViewSpecial extends View {
 	}
 
 	private void paintSelection(Canvas canvas) {
-		if (mCurrentSelection == INDEX_NONE)
-			return;
+		if (mCurrentSelection == INDEX_NONE) return;
 
 		int row = mCurrentSelection / mColumns;
 		int col = mCurrentSelection - (row * mColumns);
@@ -807,11 +769,9 @@ class ImageBlockManager {
 	private int mStartRow = 0;
 	private int mEndRow = 0;
 
-	ImageBlockManager(Handler handler, Runnable redrawCallback,
-			IImageList imageList, ImageLoader loader,
-			GridViewSpecial.DrawAdapter adapter,
-			GridViewSpecial.LayoutSpec spec, int columns, int blockWidth,
-			Bitmap outline) {
+	ImageBlockManager(Handler handler, Runnable redrawCallback, IImageList imageList,
+			ImageLoader loader, GridViewSpecial.DrawAdapter adapter,
+			GridViewSpecial.LayoutSpec spec, int columns, int blockWidth, Bitmap outline) {
 		mHandler = handler;
 		mRedrawCallback = redrawCallback;
 		mImageList = imageList;
@@ -859,26 +819,24 @@ class ImageBlockManager {
 		for (int pos : tags) {
 			int row = pos / mColumns;
 			int col = pos - row * mColumns;
-			
+
 			ImageBlock blk = mCache.get(row);
-			//Assert(blk != null); // We won't reuse the block if it has pending
-									// requests. See getEmptyBlock().
-			//TODO 这个地方原来是 assert(blk != null)则异常的
-			if(blk != null)
-				blk.cancelRequest(col);
+			// Assert(blk != null); // We won't reuse the block if it has
+			// pending
+			// requests. See getEmptyBlock().
+			// TODO 这个地方原来是 assert(blk != null)则异常的
+			if (blk != null) blk.cancelRequest(col);
 		}
 	}
 
 	// Scan the cache and send requests to ImageLoader if needed.
 	private void continueLoading() {
 		// Check if we still have enough requests in the queue.
-		if (mPendingRequest >= REQUESTS_LOW)
-			return;
+		if (mPendingRequest >= REQUESTS_LOW) return;
 
 		// Scan the visible rows.
 		for (int i = mStartRow; i < mEndRow; i++) {
-			if (scanOne(i))
-				return;
+			if (scanOne(i)) return;
 		}
 
 		int range = (CACHE_ROWS - (mEndRow - mStartRow)) / 2;
@@ -890,10 +848,8 @@ class ImageBlockManager {
 			if (after >= mRows && before < 0) {
 				break; // Nothing more the scan.
 			}
-			if (after < mRows && scanOne(after))
-				return;
-			if (before >= 0 && scanOne(before))
-				return;
+			if (after < mRows && scanOne(after)) return;
+			if (before >= 0 && scanOne(before)) return;
 		}
 	}
 
@@ -953,8 +909,7 @@ class ImageBlockManager {
 		int row = index / mColumns;
 		int col = index - (row * mColumns);
 		ImageBlock blk = mCache.get(row);
-		if (blk == null)
-			return;
+		if (blk == null) return;
 		if ((blk.mCompletedMask & (1 << col)) != 0) {
 			blk.mCompletedMask &= ~(1 << col);
 		}
@@ -971,8 +926,7 @@ class ImageBlockManager {
 	}
 
 	// Draw the images to the given canvas.
-	public void doDraw(Canvas canvas, int thisWidth, int thisHeight,
-			int scrollPos) {
+	public void doDraw(Canvas canvas, int thisWidth, int thisHeight, int scrollPos) {
 		final int height = mBlockHeight;
 
 		// Note that currentBlock could be negative.
@@ -1005,8 +959,7 @@ class ImageBlockManager {
 	// Draw a block which has not been loaded.
 	private void drawEmptyBlock(Canvas canvas, int xPos, int yPos, int row) {
 		// Draw the background.
-		canvas.drawRect(xPos, yPos, xPos + mBlockWidth, yPos + mBlockHeight,
-				mBackgroundPaint);
+		canvas.drawRect(xPos, yPos, xPos + mBlockWidth, yPos + mBlockHeight, mBackgroundPaint);
 
 		// Draw the empty images.
 		int x = xPos + mSpec.mLeftEdgePadding;
@@ -1053,8 +1006,7 @@ class ImageBlockManager {
 		private int mRow;
 
 		public ImageBlock() {
-			mBitmap = Bitmap.createBitmap(mBlockWidth, mBlockHeight,
-					Bitmap.Config.RGB_565);
+			mBitmap = Bitmap.createBitmap(mBlockWidth, mBlockHeight, Bitmap.Config.RGB_565);
 			mCanvas = new Canvas(mBitmap);
 			mRow = -1;
 		}
@@ -1088,8 +1040,7 @@ class ImageBlockManager {
 			int columns = numColumns(mRow);
 
 			// Calculate what we need.
-			int needMask = ((1 << columns) - 1)
-					& ~(mCompletedMask | mRequestedMask);
+			int needMask = ((1 << columns) - 1) & ~(mCompletedMask | mRequestedMask);
 
 			if (needMask == 0) {
 				return 0;
@@ -1121,7 +1072,7 @@ class ImageBlockManager {
 							});
 						}
 					};
-					
+
 					// Load Image
 					mLoader.getBitmap(image, cb, pos);
 					mRequestedMask |= (1 << col);
@@ -1139,8 +1090,7 @@ class ImageBlockManager {
 
 		// Called when an image is loaded.
 		private void loadImageDone(IImage image, Bitmap b, int col) {
-			if (mBitmap == null)
-				return; // This block has been recycled.
+			if (mBitmap == null) return; // This block has been recycled.
 
 			int spacing = mSpec.mCellSpacing;
 			int leftSpacing = mSpec.mLeftEdgePadding;
@@ -1170,8 +1120,8 @@ class ImageBlockManager {
 
 		// Draw the loaded bitmap to the block bitmap.
 		private void drawBitmap(IImage image, Bitmap b, int xPos, int yPos) {
-			mDrawAdapter.drawImage(mCanvas, image, b, xPos, yPos,
-					mSpec.mCellWidth, mSpec.mCellHeight);
+			mDrawAdapter.drawImage(mCanvas, image, b, xPos, yPos, mSpec.mCellWidth,
+					mSpec.mCellHeight);
 			mCanvas.drawBitmap(mOutline, xPos, yPos, null);
 		}
 
@@ -1185,11 +1135,10 @@ class ImageBlockManager {
 
 				// This must be the last row -- we draw only part of the block.
 				// Draw the background.
-				canvas.drawRect(xPos, yPos, xPos + mBlockWidth, yPos
-						+ mBlockHeight, mBackgroundPaint);
+				canvas.drawRect(xPos, yPos, xPos + mBlockWidth, yPos + mBlockHeight,
+						mBackgroundPaint);
 				// Draw part of the block.
-				int w = mSpec.mLeftEdgePadding + cols
-						* (mSpec.mCellWidth + mSpec.mCellSpacing);
+				int w = mSpec.mLeftEdgePadding + cols * (mSpec.mCellWidth + mSpec.mCellSpacing);
 				Rect srcRect = new Rect(0, 0, w, mBlockHeight);
 				Rect dstRect = new Rect(srcRect);
 				dstRect.offset(xPos, yPos);

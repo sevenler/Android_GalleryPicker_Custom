@@ -42,11 +42,9 @@ public class Image extends BaseImage implements IImage {
 
 	private int mRotation;
 
-	public Image(BaseImageList container, ContentResolver cr, long id,
-			int index, Uri uri, String dataPath, String mimeType,
-			long dateTaken, String title, int rotation) {
-		super(container, cr, id, index, uri, dataPath, mimeType, dateTaken,
-				title);
+	public Image(BaseImageList container, ContentResolver cr, long id, int index, Uri uri,
+			String dataPath, String mimeType, long dateTaken, String title, int rotation) {
+		super(container, cr, id, index, uri, dataPath, mimeType, dateTaken, title);
 		mRotation = rotation;
 	}
 
@@ -56,8 +54,7 @@ public class Image extends BaseImage implements IImage {
 	}
 
 	protected void setDegreesRotated(int degrees) {
-		if (mRotation == degrees)
-			return;
+		if (mRotation == degrees) return;
 		mRotation = degrees;
 		ContentValues values = new ContentValues();
 		values.put(ImageColumns.ORIENTATION, mRotation);
@@ -106,31 +103,28 @@ public class Image extends BaseImage implements IImage {
 	private void setExifRotation(int degrees) {
 		try {
 			degrees %= 360;
-			if (degrees < 0)
-				degrees += 360;
+			if (degrees < 0) degrees += 360;
 
 			int orientation = ExifInterface.ORIENTATION_NORMAL;
 			switch (degrees) {
-			case 0:
-				orientation = ExifInterface.ORIENTATION_NORMAL;
-				break;
-			case 90:
-				orientation = ExifInterface.ORIENTATION_ROTATE_90;
-				break;
-			case 180:
-				orientation = ExifInterface.ORIENTATION_ROTATE_180;
-				break;
-			case 270:
-				orientation = ExifInterface.ORIENTATION_ROTATE_270;
-				break;
+				case 0:
+					orientation = ExifInterface.ORIENTATION_NORMAL;
+					break;
+				case 90:
+					orientation = ExifInterface.ORIENTATION_ROTATE_90;
+					break;
+				case 180:
+					orientation = ExifInterface.ORIENTATION_ROTATE_180;
+					break;
+				case 270:
+					orientation = ExifInterface.ORIENTATION_ROTATE_270;
+					break;
 			}
 
-			replaceExifTag(ExifInterface.TAG_ORIENTATION,
-					Integer.toString(orientation));
+			replaceExifTag(ExifInterface.TAG_ORIENTATION, Integer.toString(orientation));
 			saveExifData();
 		} catch (Exception ex) {
-			Log.e(TAG, "unable to save exif data with new orientation "
-					+ fullSizeImageUri(), ex);
+			Log.e(TAG, "unable to save exif data with new orientation " + fullSizeImageUri(), ex);
 		}
 	}
 

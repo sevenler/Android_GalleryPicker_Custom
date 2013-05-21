@@ -51,7 +51,6 @@ import android.widget.Toast;
 
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
-import com.androidesk.camera.gallery.UrlImage;
 import com.androidesk.camera.gallery.UrlImageList;
 import com.androidesk.camera.gallery.VideoObject;
 import com.androidesk.gallery.R;
@@ -174,8 +173,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 			image.setOnTouchListener(null);
 
 			BitmapDrawable drawable = (BitmapDrawable)image.getDrawable();
-			if (drawable == null)
-				return;
+			if (drawable == null) return;
 			image.destroyDrawingCache();
 			Bitmap bitmap = drawable.getBitmap();
 			if (bitmap != null) {
@@ -263,8 +261,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	}
 
 	private void showOnScreenControls() {
-		if (mPaused)
-			return;
+		if (mPaused) return;
 		// If the view has not been attached to the window yet, the
 		// zoomButtonControls will not able to show up. So delay it until the
 		// view has attached to window.
@@ -288,8 +285,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent m) {
-		if (mPaused)
-			return true;
+		if (mPaused) return true;
 		scheduleDismissOnScreenControls();
 
 		return super.dispatchTouchEvent(m);
@@ -313,8 +309,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 
 		@Override
 		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-			if (mPaused)
-				return false;
+			if (mPaused) return false;
 			ImageViewTouch imageView = mImageView;
 			if (imageView.getScale() > 1F) {
 				imageView.postTranslateCenter(-distanceX, -distanceY);
@@ -324,16 +319,14 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 
 		@Override
 		public boolean onSingleTapUp(MotionEvent e) {
-			if (mPaused)
-				return false;
+			if (mPaused) return false;
 			setMode(MODE_NORMAL);
 			return true;
 		}
 
 		@Override
 		public boolean onSingleTapConfirmed(MotionEvent e) {
-			if (mPaused)
-				return false;
+			if (mPaused) return false;
 			showOnScreenControls();
 			scheduleDismissOnScreenControls();
 			return false;
@@ -341,8 +334,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 
 		@Override
 		public boolean onDoubleTap(MotionEvent e) {
-			if (mPaused)
-				return false;
+			if (mPaused) return false;
 			ImageViewTouch imageView = mImageView;
 
 			// Switch between the original scale and 3x scale.
@@ -381,8 +373,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 		mImageMenuRunnable = MenuHelper.addImageMenuItems(menu, MenuHelper.INCLUDE_ALL,
 				ViewImage.this, mHandler, mDeletePhotoRunnable, new MenuHelper.MenuInvoker() {
 					public void run(final MenuHelper.MenuCallback cb) {
-						if (mPaused)
-							return;
+						if (mPaused) return;
 						setMode(MODE_NORMAL);
 
 						IImage image = mAllImages.getImageAt(mCurrentPosition);
@@ -435,8 +426,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	public boolean onPrepareOptionsMenu(Menu menu) {
 
 		super.onPrepareOptionsMenu(menu);
-		if (mPaused)
-			return false;
+		if (mPaused) return false;
 
 		setMode(MODE_NORMAL);
 		IImage image = mAllImages.getImageAt(mCurrentPosition);
@@ -511,9 +501,8 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 				}
 
 				ImageViewTouch image = mImagePagerItems.get(pos + offset);
-				if(image != null) image.setImageRotateBitmapResetBase(bitmap, isThumb);
-				if (offset == 0)
-					hidenOrShowProgress(false);
+				if (image != null) image.setImageRotateBitmapResetBase(bitmap, isThumb);
+				if (offset == 0) hidenOrShowProgress(false);
 			}
 		};
 
@@ -522,8 +511,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 			mGetter.setPosition(pos, cb, mAllImages, mHandler);
 		}
 		updateActionIcons();
-		if (showControls)
-			showOnScreenControls();
+		if (showControls) showOnScreenControls();
 		scheduleDismissOnScreenControls();
 	}
 
@@ -541,7 +529,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.viewimage);
 
-		//TODO 实践表明，缓存的数量是控件缓存数量+2时，不会出现 use recycled bitmap 错误,具体原因还有待分析
+		// TODO 实践表明，缓存的数量是控件缓存数量+2时，不会出现 use recycled bitmap 错误,具体原因还有待分析
 		mCache = new BitmapCache(CACHE_SIZE_MAX + 2);
 
 		mAnimationIndex = -1;
@@ -613,9 +601,10 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 			@Override
 			public void onPageSelected(int arg0) {
 				mCurrentPosition = arg0;
-				
-				//非初始化状态下，滑动后，需要更新mImageView 与ImageViewAdapter的instantiateItem方法中的mImageView初始化正好相反
-				if(!mImagePagerItems.isEmpty()){
+
+				// 非初始化状态下，滑动后，需要更新mImageView
+				// 与ImageViewAdapter的instantiateItem方法中的mImageView初始化正好相反
+				if (!mImagePagerItems.isEmpty()) {
 					mImageView = mImagePagerItems.get(mCurrentPosition);
 					setImage(mCurrentPosition, true);
 				}
@@ -641,15 +630,12 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	}
 
 	private void hidenOrShowProgress(boolean loading) {
-		if (loading)
-			mProgress.setVisibility(View.VISIBLE);
-		else
-			mProgress.setVisibility(View.INVISIBLE);
+		if (loading) mProgress.setVisibility(View.VISIBLE);
+		else mProgress.setVisibility(View.INVISIBLE);
 	}
 
 	private void updateActionIcons() {
-		if (isPickIntent())
-			return;
+		if (isPickIntent()) return;
 
 		IImage image = mAllImages.getImageAt(mCurrentPosition);
 		View panel = mActionIconPanel;
@@ -880,21 +866,19 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	}
 
 	private boolean init(Uri uri) {
-		if (uri == null)
-			return false;
+		if (uri == null) return false;
 		mAllImages = checkHttpDataIfNeed(uri);
 		if (mAllImages == null)
 			mAllImages = (mParam == null) ? buildImageListFromUri(uri) : ImageManager
 					.makeImageList(getContentResolver(), mParam);
-			
+
 		IImage image = mAllImages.getImageForUri(uri);
-		if (image == null)
-			return false;
+		if (image == null) return false;
 		mCurrentPosition = mAllImages.getImageIndex(image);
 		mLastSlideShowImage = mCurrentPosition;
 		return true;
 	}
-	
+
 	private IImageList checkHttpDataIfNeed(Uri uri) {
 		String cid = getIntent().getExtras().getString("classId");
 		if ("http".equals(uri.getScheme())) {
@@ -905,11 +889,9 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	}
 
 	private Uri getCurrentUri() {
-		if (mAllImages.getCount() == 0)
-			return null;
+		if (mAllImages.getCount() == 0) return null;
 		IImage image = mAllImages.getImageAt(mCurrentPosition);
-		if (image == null)
-			return null;
+		if (image == null) return null;
 		return image.fullSizeImageUri();
 	}
 
@@ -977,7 +959,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 		}
 
 		hideOnScreenControls();
-		if(mImageView != null) mImageView.clear();
+		if (mImageView != null) mImageView.clear();
 		mCache.clear();
 
 		for (ImageViewTouchBase iv : mSlideShowImageViews) {
@@ -1096,10 +1078,8 @@ class MyViewPager extends ViewPager {
 
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
-		if (intercept)
-			return super.onInterceptTouchEvent(ev);
-		else
-			return false;
+		if (intercept) return super.onInterceptTouchEvent(ev);
+		else return false;
 	}
 }
 
@@ -1134,8 +1114,7 @@ class ImageViewTouch extends ImageViewTouchBase {
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (mViewImage.mPaused)
-			return false;
+		if (mViewImage.mPaused) return false;
 
 		// Don't respond to arrow keys if trackball scrolling is not enabled
 		if (!mEnableTrackballScroll) {

@@ -63,8 +63,7 @@ public class ImageListUber implements IImageList {
 		for (int i = 0, n = mSubList.length; i < n; ++i) {
 			IImageList list = mSubList[i];
 			MergeSlot slot = new MergeSlot(list, i);
-			if (slot.next())
-				mQueue.add(slot);
+			if (slot.next()) mQueue.add(slot);
 		}
 	}
 
@@ -86,8 +85,7 @@ public class ImageListUber implements IImageList {
 
 	public boolean isEmpty() {
 		for (IImageList subList : mSubList) {
-			if (!subList.isEmpty())
-				return false;
+			if (!subList.isEmpty()) return false;
 		}
 		return true;
 	}
@@ -99,8 +97,8 @@ public class ImageListUber implements IImageList {
 
 	public IImage getImageAt(int index) {
 		if (index < 0 || index > getCount()) {
-			throw new IndexOutOfBoundsException("index " + index
-					+ " out of range max is " + getCount());
+			throw new IndexOutOfBoundsException("index " + index + " out of range max is "
+					+ getCount());
 		}
 
 		int skipCounts[] = mSkipCounts;
@@ -119,8 +117,8 @@ public class ImageListUber implements IImageList {
 		for (int i = 0, n = mSkipListSize; i < n; ++i) {
 			long v = mSkipList[i];
 
-			int offset = (int) (v & 0xFFFFFFFF);
-			int which = (int) (v >> 32);
+			int offset = (int)(v & 0xFFFFFFFF);
+			int which = (int)(v >> 32);
 			if (skipCount + offset > index) {
 				int subindex = mSkipCounts[which] + (index - skipCount);
 				return mSubList[which].getImageAt(subindex);
@@ -131,23 +129,19 @@ public class ImageListUber implements IImageList {
 
 		for (; true; ++skipCount) {
 			MergeSlot slot = nextMergeSlot();
-			if (slot == null)
-				return null;
+			if (slot == null) return null;
 			if (skipCount == index) {
 				IImage result = slot.mImage;
-				if (slot.next())
-					mQueue.add(slot);
+				if (slot.next()) mQueue.add(slot);
 				return result;
 			}
-			if (slot.next())
-				mQueue.add(slot);
+			if (slot.next()) mQueue.add(slot);
 		}
 	}
 
 	private MergeSlot nextMergeSlot() {
 		MergeSlot slot = mQueue.poll();
-		if (slot == null)
-			return null;
+		if (slot == null) return null;
 		if (slot.mListIndex == mLastListIndex) {
 			int lastIndex = mSkipListSize - 1;
 			++mSkipList[lastIndex];
@@ -158,7 +152,7 @@ public class ImageListUber implements IImageList {
 				System.arraycopy(mSkipList, 0, temp, 0, mSkipListSize);
 				mSkipList = temp;
 			}
-			mSkipList[mSkipListSize++] = (((long) mLastListIndex) << 32) | 1;
+			mSkipList[mSkipListSize++] = (((long)mLastListIndex) << 32) | 1;
 		}
 		return slot;
 	}
@@ -166,8 +160,7 @@ public class ImageListUber implements IImageList {
 	public IImage getImageForUri(Uri uri) {
 		for (IImageList sublist : mSubList) {
 			IImage image = sublist.getImageForUri(uri);
-			if (image != null)
-				return image;
+			if (image != null) return image;
 		}
 		return null;
 	}
@@ -181,7 +174,7 @@ public class ImageListUber implements IImageList {
 		int skipCount = 0;
 		for (int i = 0, n = mSkipListSize; i < n; i++) {
 			long v = mSkipList[i];
-			int offset = (int) (v & 0xFFFFFFFF);
+			int offset = (int)(v & 0xFFFFFFFF);
 			if (skipCount + offset > index) {
 				mSkipList[i] = v - 1;
 				break;
@@ -205,8 +198,7 @@ public class ImageListUber implements IImageList {
 
 	public boolean removeImageAt(int index) {
 		IImage image = getImageAt(index);
-		if (image == null)
-			return false;
+		if (image == null) return false;
 		return removeImage(image, index);
 	}
 
@@ -222,8 +214,8 @@ public class ImageListUber implements IImageList {
 		int skipCount = 0;
 		for (int i = 0, n = mSkipListSize; i < n; ++i) {
 			long value = mSkipList[i];
-			int offset = (int) (value & 0xFFFFFFFF);
-			int which = (int) (value >> 32);
+			int offset = (int)(value & 0xFFFFFFFF);
+			int which = (int)(value >> 32);
 			if (which == listIndex) {
 				if (listOffset < offset) {
 					return skipCount + listOffset;
@@ -235,15 +227,12 @@ public class ImageListUber implements IImageList {
 
 		for (; true; ++skipCount) {
 			MergeSlot slot = nextMergeSlot();
-			if (slot == null)
-				return -1;
+			if (slot == null) return -1;
 			if (slot.mImage == image) {
-				if (slot.next())
-					mQueue.add(slot);
+				if (slot.next()) mQueue.add(slot);
 				return skipCount;
 			}
-			if (slot.next())
-				mQueue.add(slot);
+			if (slot.next()) mQueue.add(slot);
 		}
 	}
 
@@ -289,8 +278,7 @@ public class ImageListUber implements IImageList {
 		}
 
 		public boolean next() {
-			if (mOffset >= mList.getCount() - 1)
-				return false;
+			if (mOffset >= mList.getCount() - 1) return false;
 			mImage = mList.getImageAt(++mOffset);
 			mDateTaken = mImage.getDateTaken();
 			return true;

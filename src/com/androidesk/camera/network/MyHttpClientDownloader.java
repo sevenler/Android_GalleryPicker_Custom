@@ -22,7 +22,7 @@ import android.content.Context;
 
 import com.nostra13.universalimageloader.core.download.ImageDownloader;
 
-public class MyHttpClientDownloader extends ImageDownloader{
+public class MyHttpClientDownloader extends ImageDownloader {
 	private HttpClient httpClient;
 
 	public MyHttpClientDownloader(HttpClient httpClient) {

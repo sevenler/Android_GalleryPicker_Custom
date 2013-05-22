@@ -45,6 +45,7 @@ import android.widget.Scroller;
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
 import com.androidesk.gallery.R;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 class GridViewSpecial extends View {
 	@SuppressWarnings("unused")
@@ -1074,7 +1075,7 @@ class ImageBlockManager {
 					};
 
 					// Load Image
-					mLoader.getBitmap(image, cb, pos);
+					mLoader.getBitmap(image, cb, pos, new ImageSize(mSpec.mCellWidth, mSpec.mCellHeight));
 					mRequestedMask |= (1 << col);
 					retVal += 1;
 				}

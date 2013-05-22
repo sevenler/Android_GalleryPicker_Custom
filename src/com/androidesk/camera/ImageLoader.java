@@ -23,7 +23,7 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 
 import com.androidesk.camera.gallery.IImage;
-import com.androidesk.camera.gallery.UrlImage;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 /**
  * A dedicated decoding thread used by ImageGallery.
@@ -44,13 +44,13 @@ public class ImageLoader {
 		public void run(Bitmap result);
 	}
 
-	public void getBitmap(IImage image, LoadedCallback imageLoadedRunnable, int tag) {
+	public void getBitmap(IImage image, LoadedCallback imageLoadedRunnable, int tag, ImageSize size) {
 		if (mDecodeThread == null) {
 			start();
 		}
 
 		synchronized (mQueue) {
-			WorkItem w = new WorkItem(image, imageLoadedRunnable, tag);
+			WorkItem w = new WorkItem(image, imageLoadedRunnable, tag, size);
 			mQueue.add(w);
 			mQueue.notifyAll();
 		}
@@ -95,11 +95,13 @@ public class ImageLoader {
 		IImage mImage;
 		LoadedCallback mOnLoadedRunnable;
 		int mTag;
+		ImageSize mSize;
 
-		WorkItem(IImage image, LoadedCallback onLoadedRunnable, int tag) {
+		WorkItem(IImage image, LoadedCallback onLoadedRunnable, int tag, ImageSize size) {
 			mImage = image;
 			mOnLoadedRunnable = onLoadedRunnable;
 			mTag = tag;
+			mSize = size;
 		}
 	}
 
@@ -134,8 +136,8 @@ public class ImageLoader {
 
 				// 网络数据请求thumbBitmap
 				IImage image = workItem.mImage;
-				final Bitmap b = ((image instanceof UrlImage) ? image.thumbBitmap(false) : image
-						.miniThumbBitmap());
+				ImageSize size = workItem.mSize;
+				final Bitmap b = image.thumbBitmap(size.getWidth(), size.getHeight());
 
 				if (workItem.mOnLoadedRunnable != null) {
 					workItem.mOnLoadedRunnable.run(b);

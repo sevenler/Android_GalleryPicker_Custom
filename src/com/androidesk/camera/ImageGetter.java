@@ -25,6 +25,7 @@ import android.os.Process;
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
 import com.androidesk.camera.gallery.VideoObject;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 /*
  * Here's the loading strategy.  For any given image, load the thumbnail
@@ -99,6 +100,8 @@ class ImageGetter {
 	private boolean mDone = false;
 
 	private ContentResolver mCr;
+	
+	private final ImageSize mSize;
 
 	private class ImageGetterRunnable implements Runnable {
 
@@ -172,7 +175,7 @@ class ImageGetter {
 					if (image == null) continue;
 					if (mCancel) return;
 
-					Bitmap b = image.thumbBitmap(IImage.NO_ROTATE);
+					Bitmap b = image.thumbBitmap(mSize.getWidth(), mSize.getHeight());
 					if (b == null) continue;
 					if (mCancel) {
 						b.recycle();
@@ -220,11 +223,12 @@ class ImageGetter {
 		}
 	}
 
-	public ImageGetter(ContentResolver cr) {
+	public ImageGetter(ContentResolver cr, ImageSize size) {
 		mCr = cr;
 		mGetterThread = new Thread(new ImageGetterRunnable());
 		mGetterThread.setName("ImageGettter");
 		mGetterThread.start();
+		mSize = size;
 	}
 
 	// Cancels current loading (without waiting).

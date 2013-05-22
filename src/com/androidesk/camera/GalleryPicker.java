@@ -567,7 +567,7 @@ public class GalleryPicker extends NoSearchActivity {
 	Drawable mCellOutline;
 	Drawable mVideoOverlay;
 
-	private void loadDrawableIfNeeded() {
+	protected void loadDrawableIfNeeded() {
 		if (mFrameGalleryMask != null) return; // already loaded
 		Resources r = getResources();
 		mFrameGalleryMask = r.getDrawable(R.drawable.frame_gallery_preview_album_mask);
@@ -581,7 +581,7 @@ public class GalleryPicker extends NoSearchActivity {
 		mVideoOverlay = null;
 	}
 
-	private static void placeImage(Bitmap image, Canvas c, Paint paint, int imageWidth,
+	protected static void placeImage(Bitmap image, Canvas c, Paint paint, int imageWidth,
 			int widthPadding, int imageHeight, int heightPadding, int offsetX, int offsetY, int pos) {
 		int row = pos / 2;
 		int col = pos - (row * 2);
@@ -593,7 +593,7 @@ public class GalleryPicker extends NoSearchActivity {
 	}
 
 	// This is run in worker thread.
-	private Bitmap makeMiniThumbBitmap(int width, int height, IImageList images) {
+	protected Bitmap makeMiniThumbBitmap(int width, int height, IImageList images) {
 		int count = images.getCount();
 		// We draw three different version of the folder image depending on the
 		// number of images in the folder.

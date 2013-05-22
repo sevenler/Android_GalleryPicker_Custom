@@ -54,6 +54,7 @@ import com.androidesk.camera.gallery.IImageList;
 import com.androidesk.camera.gallery.UrlImageList;
 import com.androidesk.camera.gallery.VideoObject;
 import com.androidesk.gallery.R;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 // This activity can display a whole picture and navigate them in a specific
 // gallery. It has two modes: normal mode and slide show mode. In normal mode
@@ -117,6 +118,8 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 			CACHE_SIZE_MAX);
 	private ProgressBar mProgress;
 	private MyPagerAdapter mpagerAdapter;
+	private ImageSize mLoadSize = new ImageSize(IImage.THUMBNAIL_MAX_NUM_PIXELS_WIDTH,
+			IImage.THUMBNAIL_MAX_NUM_PIXELS_HEIGHT);
 
 	class MyPagerAdapter extends PagerAdapter {
 		private GestureDetector mGestureDetector;
@@ -855,7 +858,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	}
 
 	private void makeGetter() {
-		mGetter = new ImageGetter(getContentResolver());
+		mGetter = new ImageGetter(getContentResolver(), mLoadSize);
 	}
 
 	private IImageList buildImageListFromUri(Uri uri) {

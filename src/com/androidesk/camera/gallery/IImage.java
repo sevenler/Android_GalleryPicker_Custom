@@ -80,6 +80,8 @@ public interface IImage {
 
 	// Get the bitmap of the medium thumbnail
 	public abstract Bitmap thumbBitmap(boolean rotateAsNeeded);
+	
+	public abstract Bitmap thumbBitmap(int width, int height);
 
 	// Get the bitmap of the mini thumbnail.
 	public abstract Bitmap miniThumbBitmap();

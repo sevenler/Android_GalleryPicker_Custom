@@ -87,6 +87,11 @@ public class UrlImage extends BaseImage implements IImage {
 	}
 
 	@Override
+	public Bitmap thumbBitmap(int width, int height) {
+		return decode(new ImageSize(width, height));
+	}
+
+	@Override
 	public InputStream fullSizeImageData() {
 		try {
 			InputStream input = imageDownloader.getStream(URI.create(mUri.toString()));

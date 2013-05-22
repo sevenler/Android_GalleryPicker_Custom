@@ -375,6 +375,7 @@ public class ImageGallery extends NoSearchActivity implements GridViewSpecial.Li
 		}
 
 		mAllImages = checkHttpDataIfNeed();
+		System.out.println(String.format(" mAllImages.getCount() %s", mAllImages.getCount()));
 		if (mAllImages == null) {
 			mParam = allImages(!unmounted && !scanning);
 			mAllImages = ImageManager.makeImageList(getContentResolver(), mParam);
@@ -395,7 +396,7 @@ public class ImageGallery extends NoSearchActivity implements GridViewSpecial.Li
 		String cid = intent.getExtras().getString("classId");
 		mClassId = cid;
 		if ("http".equals(uri.getScheme())) {
-			return new UrlImageList(this, UrlImageList.LOCATION_CATALOG, cid, 90);
+			return new UrlImageList(this, UrlImageList.LOCATION_CATALOG, cid, 48);
 		} else return null;
 	}
 

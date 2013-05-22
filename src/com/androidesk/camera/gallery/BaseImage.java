@@ -254,4 +254,11 @@ public abstract class BaseImage implements IImage {
 		Bitmap result = BitmapFactory.decodeFileDescriptor(fd, null, options);
 		return ensureGLCompatibleBitmap(result);
 	}
+
+	@Override
+	public Bitmap thumbBitmap(int width, int height) {
+		if (width * height < MINI_THUMB_MAX_NUM_PIXELS) return miniThumbBitmap();
+		else if (width * height < THUMBNAIL_MAX_NUM_PIXELS) return thumbBitmap(ROTATE_AS_NEEDED);
+		return thumbBitmap(ROTATE_AS_NEEDED);
+	}
 }

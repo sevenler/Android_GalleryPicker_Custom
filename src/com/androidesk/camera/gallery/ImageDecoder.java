@@ -2,13 +2,13 @@
 package com.androidesk.camera.gallery;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 
+import com.androidesk.camera.network.MyHttpClientDownloader;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
@@ -31,16 +31,19 @@ public class ImageDecoder {
 	private static final String LOG_IMAGE_SCALED = "Subsampled image (%1$dx%2$d) was scaled to %3$dx%4$d";
 
 	private final URI imageUri;
-	private final ImageDownloader imageDownloader;
+	private final MyHttpClientDownloader imageDownloader;
 
 	private boolean loggingEnabled;
+
+	private byte[] mBytes;// decode bounds的时候将图片的byte缓存起来
+							// 正式decode的时候直接使用这里的byte缓存来decode
 
 	/**
 	 * @param imageUri Image URI (<b>i.e.:</b> "http://site.com/image.png",
 	 *            "file:///mnt/sdcard/image.png")
 	 * @param imageDownloader Image downloader
 	 */
-	ImageDecoder(URI imageUri, ImageDownloader imageDownloader) {
+	public ImageDecoder(URI imageUri, MyHttpClientDownloader imageDownloader) {
 		this.imageUri = imageUri;
 		this.imageDownloader = imageDownloader;
 	}
@@ -55,8 +58,9 @@ public class ImageDecoder {
 	 * @return Decoded bitmap
 	 * @throws IOException
 	 */
-	public Bitmap decode(ImageSize targetSize, ImageScaleType scaleType) throws IOException {
-		return decode(targetSize, scaleType, ViewScaleType.FIT_INSIDE);
+	public Bitmap decode(ImageSize targetSize, Options decodeOptions, ImageScaleType scaleType)
+			throws IOException {
+		return decode(targetSize, decodeOptions, scaleType, ViewScaleType.FIT_INSIDE);
 	}
 
 	/**
@@ -70,17 +74,28 @@ public class ImageDecoder {
 	 * @return Decoded bitmap
 	 * @throws IOException
 	 */
-	public Bitmap decode(ImageSize targetSize, ImageScaleType scaleType, ViewScaleType viewScaleType)
-			throws IOException {
-		Options decodeOptions = getBitmapOptionsForImageDecoding(targetSize, scaleType,
-				viewScaleType);
-		InputStream imageStream = imageDownloader.getStream(imageUri);
-		Bitmap subsampledBitmap;
-		try {
-			subsampledBitmap = BitmapFactory.decodeStream(imageStream, null, decodeOptions);
-		} finally {
-			imageStream.close();
-		}
+	public Bitmap decode(ImageSize targetSize, Options decodeOptions, ImageScaleType scaleType,
+			ViewScaleType viewScaleType) throws IOException {
+		if (decodeOptions.mCancel) return null;
+		long beg = System.currentTimeMillis();
+		System.out.println(String.format(" begin get options decoding uri:%s cancel:%s", imageUri,
+				decodeOptions.mCancel));
+		decodeOptions = getBitmapOptionsForImageDecoding(targetSize, scaleType, viewScaleType,
+				decodeOptions);
+		long begin = System.currentTimeMillis();
+
+		System.out.println(String.format(" decodeing begin duration:%s uri:%s cancel:%s",
+				(begin - beg), imageUri, decodeOptions.mCancel));
+		if (decodeOptions.mCancel) return null;
+		long end = System.currentTimeMillis();
+		System.out.println(String.format(" decodeing uri:%s duration:%s options:%s cacel:%s",
+				imageUri, (end - begin), decodeOptions, decodeOptions.mCancel));
+
+		if (mBytes == null) return null;
+		decodeOptions.inJustDecodeBounds = false;
+		Bitmap subsampledBitmap = BitmapFactory.decodeByteArray(mBytes, 0, mBytes.length,
+				decodeOptions);
+
 		if (subsampledBitmap == null) {
 			return null;
 		}
@@ -95,28 +110,26 @@ public class ImageDecoder {
 	}
 
 	private Options getBitmapOptionsForImageDecoding(ImageSize targetSize,
-			ImageScaleType scaleType, ViewScaleType viewScaleType) throws IOException {
-		Options decodeOptions = new Options();
-		decodeOptions.inSampleSize = computeImageScale(targetSize, scaleType, viewScaleType);
+			ImageScaleType scaleType, ViewScaleType viewScaleType, Options decodeOptions)
+			throws IOException {
+		if (decodeOptions == null) decodeOptions = new Options();
+		decodeOptions.inSampleSize = computeImageScale(targetSize, scaleType, viewScaleType,
+				decodeOptions);
 		decodeOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
 		return decodeOptions;
 	}
 
 	@SuppressWarnings("deprecation")
 	private int computeImageScale(ImageSize targetSize, ImageScaleType scaleType,
-			ViewScaleType viewScaleType) throws IOException {
+			ViewScaleType viewScaleType, Options options) throws IOException {
 		int targetWidth = targetSize.getWidth();
 		int targetHeight = targetSize.getHeight();
 
 		// decode image size
-		Options options = new Options();
 		options.inJustDecodeBounds = true;
-		InputStream imageStream = imageDownloader.getStream(imageUri);
-		try {
-			BitmapFactory.decodeStream(imageStream, null, options);
-		} finally {
-			imageStream.close();
-		}
+		mBytes = imageDownloader.getByteArrayFromNetwork(imageUri, options);
+		if (mBytes == null) return options.inSampleSize;
+		BitmapFactory.decodeByteArray(mBytes, 0, mBytes.length, options);
 
 		int scale = 1;
 		int imageWidth = options.outWidth;

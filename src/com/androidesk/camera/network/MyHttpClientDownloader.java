@@ -2,6 +2,7 @@
 package com.androidesk.camera.network;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,17 +13,18 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
-import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.ByteArrayBuffer;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
 
-import com.nostra13.universalimageloader.core.download.ImageDownloader;
 
-public class MyHttpClientDownloader extends ImageDownloader {
+public class MyHttpClientDownloader {
 	private HttpClient httpClient;
 
 	public MyHttpClientDownloader(HttpClient httpClient) {
@@ -34,17 +36,46 @@ public class MyHttpClientDownloader extends ImageDownloader {
 	}
 
 	public String getStringFromNetwork(URI imageUri) throws IOException {
-		InputStream is = getStreamFromNetwork(imageUri);
+		InputStream is = getStreamFromNetwork(imageUri, new BitmapFactory.Options());
 		return Stream.convertStreamToString(is);
 	}
 
-	@Override
-	protected InputStream getStreamFromNetwork(URI imageUri) throws IOException {
+	public InputStream getStreamFromNetwork(URI imageUri, Options options) throws IOException {
+		if(options.mCancel) return null;
 		HttpGet httpRequest = new HttpGet(imageUri.toString());
 		HttpResponse response = httpClient.execute(httpRequest);
+		
 		HttpEntity entity = response.getEntity();
-		BufferedHttpEntity bufHttpEntity = new BufferedHttpEntity(entity);
-		return bufHttpEntity.getContent();
+		if(options.mCancel){
+			httpRequest.abort();
+			return null;
+		}
+		long begin = System.currentTimeMillis();
+		byte[] bytes = Stream.toByteArray(entity, options);
+		if(bytes == null) return null;
+		System.out.println(String.format(" ======== get stream begin %s %s %s", imageUri,options, options.mCancel));
+		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+		long end = System.currentTimeMillis();
+		System.out.println(String.format("  ========= get stream begin  %s %s  %s %s============", imageUri, (end - begin),options, options.mCancel));
+		return bis;
+	}
+	
+	public byte[] getByteArrayFromNetwork(URI imageUri, Options options) throws IOException {
+		if(options.mCancel) return null;
+		HttpGet httpRequest = new HttpGet(imageUri.toString());
+		HttpResponse response = httpClient.execute(httpRequest);
+		
+		HttpEntity entity = response.getEntity();
+		if(options.mCancel){
+			httpRequest.abort();
+			return null;
+		}
+		byte[] bytes = Stream.toByteArray(entity, options);
+		return bytes;
+	}
+
+	public void readStreamFromEntity(HttpEntity entity) {
+
 	}
 }
 
@@ -82,5 +113,37 @@ final class Stream {
 			sb.append(line);
 		}
 		return sb.toString();
+	}
+
+	public static byte[] toByteArray(final HttpEntity entity, Options options) throws IOException {
+		if (entity == null) {
+			throw new IllegalArgumentException("HTTP entity may not be null");
+		}
+		if(options.mCancel) return null;
+		InputStream instream = entity.getContent();
+		if (instream == null) {
+			return null;
+		}
+		try {
+			if (entity.getContentLength() > Integer.MAX_VALUE) {
+				throw new IllegalArgumentException("HTTP entity too large to be buffered in memory");
+			}
+			if(options.mCancel) return null;
+			int i = (int)entity.getContentLength();
+			if (i < 0) {
+				i = 4096;
+			}
+			if(options.mCancel) return null;
+			ByteArrayBuffer buffer = new ByteArrayBuffer(i);
+			byte[] tmp = new byte[4096];
+			int l;
+			while ((l = instream.read(tmp)) != -1) {
+				if(options.mCancel) return null;
+				buffer.append(tmp, 0, l);
+			}
+			return buffer.toByteArray();
+		} finally {
+			instream.close();
+		}
 	}
 }

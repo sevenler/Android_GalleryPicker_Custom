@@ -17,6 +17,8 @@
 package com.androidesk.camera;
 
 import java.io.FileDescriptor;
+import java.io.IOException;
+import java.net.URI;
 import java.util.WeakHashMap;
 
 import android.annotation.TargetApi;
@@ -27,6 +29,11 @@ import android.os.Build;
 import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Video;
 import android.util.Log;
+
+import com.androidesk.camera.gallery.ImageDecoder;
+import com.androidesk.camera.network.MyHttpClientDownloader;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 /**
  * This class provides several utilities to cancel bitmap decoding. The function
@@ -117,6 +124,8 @@ public class BitmapManager {
 	public synchronized void cancelThreadDecoding(Thread t, ContentResolver cr) {
 		ThreadStatus status = getOrCreateThreadStatus(t);
 		status.mState = State.CANCEL;
+		
+		System.out.println(String.format(" cancelThreadDecoding: thread:%s state:%s opitions:%s",t, status.mState , status.mOptions));
 		if (status.mOptions != null) {
 			status.mOptions.requestCancelDecode();
 		}
@@ -196,5 +205,36 @@ public class BitmapManager {
 
 		removeDecodingOptions(thread);
 		return b;
+	}
+	
+	public Bitmap decodeNetworkUri(URI uri, ImageSize imageSize, BitmapFactory.Options options, MyHttpClientDownloader imageDownloader) {
+		if(options.mCancel) return null;
+		Thread t = Thread.currentThread();
+		System.out.println(String.format(" decodeNetworkUri: uri:%s thread:%s opitions:%s",uri, t, options));
+		
+		if (options.mCancel) {
+			return null;
+		}
+		Thread thread = Thread.currentThread();
+		if (!canThreadDecoding(thread)) {
+			Log.d(TAG, "Thread " + thread + " is not allowed to decode.");
+			return null;
+		}
+		setDecodingOptions(thread, options);
+		
+		if(options.mCancel) return null;
+		Bitmap result = null;
+		ImageDecoder decoder = new ImageDecoder(uri, imageDownloader);
+		try {
+			long begin = System.currentTimeMillis();
+			result = decoder.decode(imageSize, options, ImageScaleType.IN_SAMPLE_POWER_OF_2);
+			long end = System.currentTimeMillis();
+			System.out.println(String.format("decode %s duration %s options %s", uri, (end - begin), options));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		removeDecodingOptions(thread);
+		return result;
 	}
 }

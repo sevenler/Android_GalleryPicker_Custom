@@ -19,7 +19,16 @@ package com.androidesk.camera;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.WeakHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
@@ -30,6 +39,7 @@ import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Video;
 import android.util.Log;
 
+import com.androidesk.camera.gallery.BitmapCallback;
 import com.androidesk.camera.gallery.ImageDecoder;
 import com.androidesk.camera.network.MyHttpClientDownloader;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
@@ -49,9 +59,9 @@ public class BitmapManager {
 		CANCEL, ALLOW
 	}
 
-	private static class ThreadStatus {
+	private class ThreadStatus {
 		public State mState = State.ALLOW;
-		public BitmapFactory.Options mOptions;
+		private HashMap<Integer, BitmapFactory.Options> mOptions = new LinkedHashMap<Integer, BitmapFactory.Options>();
 		public boolean mThumbRequesting;
 
 		@Override
@@ -66,6 +76,24 @@ public class BitmapManager {
 			}
 			s = "thread state = " + s + ", options = " + mOptions;
 			return s;
+		}
+
+		private static final int DEFAULT_KEY = -1;
+
+		public void request(int key, BitmapFactory.Options options) {
+			mOptions.put(key, options);
+		}
+
+		public void request(BitmapFactory.Options options) {
+			mOptions.put(DEFAULT_KEY, options);
+		}
+
+		public void cacelAllRequest() {
+			Iterator<BitmapFactory.Options> it = mOptions.values().iterator();
+			while (it.hasNext()) {
+				it.next().requestCancelDecode();
+			}
+			mOptions.clear();
 		}
 	}
 
@@ -92,13 +120,18 @@ public class BitmapManager {
 	 * The following three methods are used to keep track of
 	 * BitmapFaction.Options used for decoding and cancelling.
 	 */
+	private synchronized void setDecodingOptions(Thread t, BitmapFactory.Options options, int key) {
+		ThreadStatus status = getOrCreateThreadStatus(t);
+		status.request(key, options);
+	}
+
 	private synchronized void setDecodingOptions(Thread t, BitmapFactory.Options options) {
-		getOrCreateThreadStatus(t).mOptions = options;
+		getOrCreateThreadStatus(t).request(options);
 	}
 
 	synchronized void removeDecodingOptions(Thread t) {
 		ThreadStatus status = mThreadStatus.get(t);
-		status.mOptions = null;
+		status.mOptions.clear();
 	}
 
 	/**
@@ -124,11 +157,8 @@ public class BitmapManager {
 	public synchronized void cancelThreadDecoding(Thread t, ContentResolver cr) {
 		ThreadStatus status = getOrCreateThreadStatus(t);
 		status.mState = State.CANCEL;
-		
-		System.out.println(String.format(" cancelThreadDecoding: thread:%s state:%s opitions:%s",t, status.mState , status.mOptions));
-		if (status.mOptions != null) {
-			status.mOptions.requestCancelDecode();
-		}
+
+		status.cacelAllRequest();
 
 		// Wake up threads in waiting list
 		notifyAll();
@@ -206,35 +236,88 @@ public class BitmapManager {
 		removeDecodingOptions(thread);
 		return b;
 	}
-	
-	public Bitmap decodeNetworkUri(URI uri, ImageSize imageSize, BitmapFactory.Options options, MyHttpClientDownloader imageDownloader) {
-		if(options.mCancel) return null;
-		Thread t = Thread.currentThread();
-		System.out.println(String.format(" decodeNetworkUri: uri:%s thread:%s opitions:%s",uri, t, options));
-		
-		if (options.mCancel) {
-			return null;
+
+	public static final int DEFAULT_THREAD_POOL_SIZE = 5;
+	public static final int DEFAULT_THREAD_PRIORITY = Thread.NORM_PRIORITY - 1;
+	private Executor mDecodeExecutor = new ThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE,
+			DEFAULT_THREAD_POOL_SIZE, 0L, TimeUnit.MILLISECONDS,
+			new LinkedBlockingQueue<Runnable>(), new DefaultThreadFactory(DEFAULT_THREAD_PRIORITY));
+
+	private static class DefaultThreadFactory implements ThreadFactory {
+		private static final AtomicInteger poolNumber = new AtomicInteger(1);
+
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+		private final String namePrefix;
+		private final int threadPriority;
+
+		DefaultThreadFactory(int threadPriority) {
+			this.threadPriority = threadPriority;
+			SecurityManager s = System.getSecurityManager();
+			group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+			namePrefix = "pool-" + poolNumber.getAndIncrement() + "-thread-";
 		}
-		Thread thread = Thread.currentThread();
+
+		public Thread newThread(Runnable r) {
+			Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+			if (t.isDaemon()) t.setDaemon(false);
+			t.setPriority(threadPriority);
+			return t;
+		}
+	}
+
+	private static final String URI_FORMAT = "%s_%sx%s";
+
+	private static int generateLoadKey(URI uri, int width, int height) {
+		return String.format(URI_FORMAT, uri.toString(), width, height).hashCode();
+	}
+
+	public Bitmap decodeNetworkUri(final URI uri, final BitmapFactory.Options options,
+			final MyHttpClientDownloader imageDownloader, final BitmapCallback callback) {
+		return decodeNetworkUri(uri, null, options, imageDownloader, callback);
+	}
+
+	public Bitmap decodeNetworkUri(final URI uri, final ImageSize imageSize,
+			final BitmapFactory.Options options, final MyHttpClientDownloader imageDownloader,
+			final BitmapCallback callback) {
+		if (options.mCancel) return null;
+
+		final Thread thread = Thread.currentThread();
 		if (!canThreadDecoding(thread)) {
 			Log.d(TAG, "Thread " + thread + " is not allowed to decode.");
 			return null;
 		}
-		setDecodingOptions(thread, options);
-		
-		if(options.mCancel) return null;
-		Bitmap result = null;
-		ImageDecoder decoder = new ImageDecoder(uri, imageDownloader);
-		try {
-			long begin = System.currentTimeMillis();
-			result = decoder.decode(imageSize, options, ImageScaleType.IN_SAMPLE_POWER_OF_2);
-			long end = System.currentTimeMillis();
-			System.out.println(String.format("decode %s duration %s options %s", uri, (end - begin), options));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		removeDecodingOptions(thread);
-		return result;
+
+		final int width = ((imageSize == null) ? 0 : imageSize.getWidth());
+		final int height = ((imageSize == null) ? 0 : imageSize.getHeight());
+		int key = generateLoadKey(uri, width, height);
+		setDecodingOptions(thread, options, key);
+
+		if (options.mCancel) return null;
+		final Bitmap[] result = new Bitmap[1];
+
+		Runnable run = new Runnable() {
+			@Override
+			public void run() {
+				ImageDecoder decoder = new ImageDecoder(uri, imageDownloader);
+				try {
+					result[0] = decoder.decode(imageSize, options,
+							ImageScaleType.IN_SAMPLE_POWER_OF_2);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				removeDecodingOptions(thread);
+				final Bitmap bitmap = result[0];
+				if (callback != null) {
+					callback.setRotateBitmap(new RotateBitmap(bitmap));
+					callback.submit();
+				}
+			}
+		};
+
+		if (callback != null) mDecodeExecutor.execute(run);// 异步加载
+		else run.run();
+		return result[0];
 	}
 }

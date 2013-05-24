@@ -26,6 +26,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -106,11 +107,11 @@ public class MenuHelper {
 	}
 
 	public interface MenuInvoker {
-		public void run(MenuCallback r);
+		public boolean run(MenuCallback r);
 	}
 
 	public interface MenuCallback {
-		public void run(Uri uri, IImage image);
+		public boolean run(Uri uri, IImage image);
 	}
 
 	public static void closeSilently(Closeable c) {
@@ -253,9 +254,9 @@ public class MenuHelper {
 	private static boolean onShowMapClicked(MenuInvoker onInvoke, final Handler handler,
 			final Activity activity) {
 		onInvoke.run(new MenuCallback() {
-			public void run(Uri u, IImage image) {
+			public boolean run(Uri u, IImage image) {
 				if (image == null) {
-					return;
+					return true;
 				}
 
 				boolean ok = false;
@@ -275,7 +276,7 @@ public class MenuHelper {
 									.show();
 						}
 					});
-					return;
+					return true;
 				}
 
 				// Can't use geo:latitude,longitude because it only centers
@@ -286,6 +287,7 @@ public class MenuHelper {
 						+ latlng[1] + ")";
 				activity.startActivity(new Intent(android.content.Intent.ACTION_VIEW, Uri
 						.parse(uri)));
+				return true;
 			}
 		});
 		return true;
@@ -356,9 +358,9 @@ public class MenuHelper {
 	private static boolean onDetailsClicked(MenuInvoker onInvoke, final Handler handler,
 			final Activity activity) {
 		onInvoke.run(new MenuCallback() {
-			public void run(Uri u, IImage image) {
+			public boolean run(Uri u, IImage image) {
 				if (image == null) {
-					return;
+					return true;
 				}
 
 				final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -435,6 +437,7 @@ public class MenuHelper {
 								.setTitle(R.string.details_panel_title).setView(d).show();
 					}
 				});
+				return true;
 			}
 		});
 		return true;
@@ -443,11 +446,12 @@ public class MenuHelper {
 	// Called when "Rotate left" or "Rotate right" is clicked.
 	private static boolean onRotateClicked(MenuInvoker onInvoke, final int degree) {
 		onInvoke.run(new MenuCallback() {
-			public void run(Uri u, IImage image) {
+			public boolean run(Uri u, IImage image) {
 				if (image == null || image.isReadonly()) {
-					return;
+					return true;
 				}
 				image.rotateImageBy(degree);
+				return true;
 			}
 		});
 		return true;
@@ -456,30 +460,35 @@ public class MenuHelper {
 	// Called when "Crop" is clicked.
 	private static boolean onCropClicked(MenuInvoker onInvoke, final Activity activity) {
 		onInvoke.run(new MenuCallback() {
-			public void run(Uri u, IImage image) {
+			public boolean run(Uri u, IImage image) {
 				if (u == null) {
-					return;
+					return true;
 				}
 
 				Intent cropIntent = new Intent("com.android.camera.action.CROP");
 				cropIntent.setData(u);
 				activity.startActivityForResult(cropIntent, RESULT_COMMON_MENU_CROP);
+				return true;
 			}
 		});
 		return true;
 	}
 
 	// Called when "Set as" is clicked.
-	private static boolean onSetAsClicked(MenuInvoker onInvoke, final Activity activity) {
+	private static boolean onSetAsClicked(MenuInvoker onInvoke, final Activity activity,
+			final Handler handler) {
 		onInvoke.run(new MenuCallback() {
-			public void run(Uri u, IImage image) {
+			public boolean run(Uri u, IImage image) {
 				if (u == null || image == null) {
-					return;
+					return true;
 				}
 
-				Intent intent = Util.createSetAsIntent(image);
-				activity.startActivity(Intent.createChooser(intent,
-						activity.getText(R.string.setImage)));
+				if (!Util.setImageWithDownload(image, activity, handler)) {
+					Intent intent = Util.createSetAsIntent(image);
+					activity.startActivity(Intent.createChooser(intent,
+							activity.getText(R.string.setImage)));
+				}
+				return false;
 			}
 		});
 		return true;
@@ -488,8 +497,8 @@ public class MenuHelper {
 	// Called when "Share" is clicked.
 	private static boolean onImageShareClicked(MenuInvoker onInvoke, final Activity activity) {
 		onInvoke.run(new MenuCallback() {
-			public void run(Uri u, IImage image) {
-				if (image == null) return;
+			public boolean run(Uri u, IImage image) {
+				if (image == null) return true;
 
 				Intent intent = new Intent();
 				intent.setAction(Intent.ACTION_SEND);
@@ -506,6 +515,7 @@ public class MenuHelper {
 							isImage ? R.string.no_way_to_share_image
 									: R.string.no_way_to_share_video, Toast.LENGTH_SHORT).show();
 				}
+				return true;
 			}
 		});
 		return true;
@@ -514,11 +524,12 @@ public class MenuHelper {
 	// Called when "Play" is clicked.
 	private static boolean onViewPlayClicked(MenuInvoker onInvoke, final Activity activity) {
 		onInvoke.run(new MenuCallback() {
-			public void run(Uri uri, IImage image) {
+			public boolean run(Uri uri, IImage image) {
 				if (image != null) {
 					Intent intent = new Intent(Intent.ACTION_VIEW, image.fullSizeImageUri());
 					activity.startActivity(intent);
 				}
+				return true;
 			}
 		});
 		return true;
@@ -528,10 +539,11 @@ public class MenuHelper {
 	private static boolean onDeleteClicked(MenuInvoker onInvoke, final Activity activity,
 			final Runnable onDelete) {
 		onInvoke.run(new MenuCallback() {
-			public void run(Uri uri, IImage image) {
+			public boolean run(Uri uri, IImage image) {
 				if (image != null) {
 					deleteImage(activity, onDelete, image);
 				}
+				return true;
 			}
 		});
 		return true;
@@ -593,7 +605,7 @@ public class MenuHelper {
 			setMenu.setIcon(android.R.drawable.ic_menu_set_as);
 			setMenu.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
 				public boolean onMenuItemClick(MenuItem item) {
-					return onSetAsClicked(onInvoke, activity);
+					return onSetAsClicked(onInvoke, activity, handler);
 				}
 			});
 			requiresImageItems.add(setMenu);

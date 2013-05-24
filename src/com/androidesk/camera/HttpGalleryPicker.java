@@ -11,7 +11,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
@@ -26,6 +25,9 @@ public class HttpGalleryPicker extends GalleryPicker {
 		checkBucketIds(allItems);
 		if (mAbort) return;
 
+		checkThumbBitmap(allItems);
+		if (mAbort) return;
+		
 		checkLowStorage();
 	}
 
@@ -54,7 +56,6 @@ public class HttpGalleryPicker extends GalleryPicker {
 			Item item = new Item(Item.TYPE_NORMAL_HTTP, key, entry.getValue(), list);
 
 			allItems.add(item);
-			checkThumbBitmap(item);
 
 			if (mAbort) return;
 			final Item finalItem = item;

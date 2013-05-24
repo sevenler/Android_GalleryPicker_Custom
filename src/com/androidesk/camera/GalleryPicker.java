@@ -16,10 +16,9 @@
 
 package com.androidesk.camera;
 
-import com.androidesk.camera.gallery.IImage;
-import com.androidesk.camera.gallery.IImageList;
-import com.androidesk.camera.gallery.UrlImageList;
-import com.androidesk.gallery.R;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -48,23 +47,24 @@ import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.MenuItem.OnMenuItemClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import com.androidesk.camera.gallery.IImage;
+import com.androidesk.camera.gallery.IImageList;
+import com.androidesk.camera.gallery.UrlImageList;
+import com.androidesk.gallery.R;
 
 /**
  * The GalleryPicker activity.
@@ -663,7 +663,7 @@ public class GalleryPicker extends NoSearchActivity {
 				temp = Util.transform(m, temp, imageWidth, imageHeight, true, Util.RECYCLE_INPUT);
 			}
 
-			Bitmap thumb = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+			Bitmap thumb = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.RGB_565);
 			Canvas tempCanvas = new Canvas(thumb);
 			if (temp != null) {
 				tempCanvas.drawBitmap(temp, new Matrix(), new Paint());

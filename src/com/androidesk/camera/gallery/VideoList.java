@@ -40,7 +40,6 @@ public class VideoList extends BaseImageList {
 	private static final int INDEX_DATA_PATH = 1;
 	private static final int INDEX_DATE_TAKEN = 2;
 	private static final int INDEX_TITLE = 3;
-	private static final int INDEX_MIMI_THUMB_MAGIC = 4;
 	private static final int INDEX_MIME_TYPE = 5;
 	private static final int INDEX_DATE_MODIFIED = 6;
 
@@ -57,7 +56,6 @@ public class VideoList extends BaseImageList {
 		if (dateTaken == 0) {
 			dateTaken = cursor.getLong(INDEX_DATE_MODIFIED) * 1000;
 		}
-		long miniThumbMagic = cursor.getLong(INDEX_MIMI_THUMB_MAGIC);
 		String title = cursor.getString(INDEX_TITLE);
 		String mimeType = cursor.getString(INDEX_MIME_TYPE);
 		if (title == null || title.length() == 0) {

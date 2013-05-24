@@ -43,7 +43,7 @@ import com.androidesk.camera.Util;
  */
 public abstract class BaseImage implements IImage {
 	private static final String TAG = "BaseImage";
-	private static final int UNKNOWN_LENGTH = -1;
+	protected static final int UNKNOWN_LENGTH = -1;
 	protected ContentResolver mContentResolver;
 
 	// Database field
@@ -57,8 +57,8 @@ public abstract class BaseImage implements IImage {
 
 	protected BaseImageList mContainer;
 
-	private int mWidth = UNKNOWN_LENGTH;
-	private int mHeight = UNKNOWN_LENGTH;
+	protected int mWidth = UNKNOWN_LENGTH;
+	protected int mHeight = UNKNOWN_LENGTH;
 
 	protected BaseImage(BaseImageList container, ContentResolver cr, long id, int index, Uri uri,
 			String dataPath, String mimeType, long dateTaken, String title) {
@@ -260,5 +260,12 @@ public abstract class BaseImage implements IImage {
 		if (width * height < MINI_THUMB_MAX_NUM_PIXELS) return miniThumbBitmap();
 		else if (width * height < THUMBNAIL_MAX_NUM_PIXELS) return thumbBitmap(ROTATE_AS_NEEDED);
 		return thumbBitmap(ROTATE_AS_NEEDED);
+	}
+
+	public BitmapCallback getBitmapLoadedCallback() {
+		return null;
+	}
+
+	public void setBitmapLoadedCallback(BitmapCallback callback) {
 	}
 }

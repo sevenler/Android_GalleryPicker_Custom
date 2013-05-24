@@ -73,7 +73,7 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	boolean mPaused = true;
 
 	// Choices for what adjacents to load.
-	private static final int[] sOrderAdjacents = new int[] { 0, 1, -1 };
+	private static final int[] sOrderAdjacents = new int[] { 0, 1, -1};
 	private static final int[] sOrderSlideshow = new int[] { 0 };
 
 	final GetterHandler mHandler = new GetterHandler();
@@ -375,20 +375,21 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 
 		mImageMenuRunnable = MenuHelper.addImageMenuItems(menu, MenuHelper.INCLUDE_ALL,
 				ViewImage.this, mHandler, mDeletePhotoRunnable, new MenuHelper.MenuInvoker() {
-					public void run(final MenuHelper.MenuCallback cb) {
-						if (mPaused) return;
+					public boolean run(final MenuHelper.MenuCallback cb) {
+						if (mPaused) return true;
 						setMode(MODE_NORMAL);
 
 						IImage image = mAllImages.getImageAt(mCurrentPosition);
 						Uri uri = image.fullSizeImageUri();
-						cb.run(uri, image);
+						boolean clear = cb.run(uri, image);
 
 						// We might have deleted all images in the callback, so
 						// call setImage() only if we still have some images.
-						if (mAllImages.getCount() > 0) {
+						if (clear && mAllImages.getCount() > 0) {
 							mImageView.clear();
 							setImage(mCurrentPosition, false);
 						}
+						return true;
 					}
 				});
 

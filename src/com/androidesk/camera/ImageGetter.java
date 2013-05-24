@@ -22,6 +22,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
 
+import com.androidesk.camera.gallery.BitmapCallback;
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
 import com.androidesk.camera.gallery.VideoObject;
@@ -100,19 +101,20 @@ class ImageGetter {
 	private boolean mDone = false;
 
 	private ContentResolver mCr;
-	
+
 	private final ImageSize mSize;
 
 	private class ImageGetterRunnable implements Runnable {
 
-		private Runnable callback(final int position, final int offset, final boolean isThumb,
-				final RotateBitmap bitmap, final int requestSerial) {
-			return new Runnable() {
+		private BitmapCallback callback(final int position, final int offset,
+				final boolean isThumb, final RotateBitmap bitmap, final int requestSerial,
+				final GetterHandler mHandler) {
+			return new BitmapCallback(bitmap, mHandler) {
 				public void run() {
 					// check for inflight callbacks that aren't applicable
 					// any longer before delivering them
 					if (requestSerial == mCurrentSerial) {
-						mCB.imageLoaded(position, offset, bitmap, isThumb);
+						mCB.imageLoaded(position, offset, getRotateBitmap(), isThumb);
 					} else if (bitmap != null) {
 						bitmap.recycle();
 					}
@@ -175,6 +177,10 @@ class ImageGetter {
 					if (image == null) continue;
 					if (mCancel) return;
 
+					// 这个地方传入回调 image.thumbBitmap异步加载则会去调用回调，并返回null
+					// image.thumbBitmap未异步则不会调用回调,会返回bitmap
+					image.setBitmapLoadedCallback(callback(mCurrentPosition, offset, true, null,
+							mCurrentSerial, mHandler));
 					Bitmap b = image.thumbBitmap(mSize.getWidth(), mSize.getHeight());
 					if (b == null) continue;
 					if (mCancel) {
@@ -182,8 +188,8 @@ class ImageGetter {
 						return;
 					}
 
-					Runnable cb = callback(mCurrentPosition, offset, true, new RotateBitmap(b,
-							image.getDegreesRotated()), mCurrentSerial);
+					BitmapCallback cb = callback(mCurrentPosition, offset, true, new RotateBitmap(
+							b, image.getDegreesRotated()), mCurrentSerial, mHandler);
 					mHandler.postGetterCallback(cb);
 				}
 			}
@@ -203,6 +209,9 @@ class ImageGetter {
 					if (mCancel) return;
 
 					int sizeToUse = mCB.fullImageSizeToUse(mCurrentPosition, offset);
+
+					image.setBitmapLoadedCallback(callback(mCurrentPosition, offset, false, null,
+							mCurrentSerial, mHandler));
 					Bitmap b = image.fullSizeBitmap(sizeToUse, 3 * 1024 * 1024, IImage.NO_ROTATE,
 							IImage.USE_NATIVE);
 
@@ -212,9 +221,8 @@ class ImageGetter {
 						return;
 					}
 
-					RotateBitmap rb = new RotateBitmap(b, image.getDegreesRotated());
-
-					Runnable cb = callback(mCurrentPosition, offset, false, rb, mCurrentSerial);
+					BitmapCallback cb = callback(mCurrentPosition, offset, false, new RotateBitmap(
+							b, image.getDegreesRotated()), mCurrentSerial, mHandler);
 					mHandler.postGetterCallback(cb);
 				}
 			}

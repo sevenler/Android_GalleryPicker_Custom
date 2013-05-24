@@ -17,18 +17,23 @@
 package com.androidesk.camera;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.net.URI;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
@@ -36,6 +41,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 
 import com.androidesk.camera.gallery.IImage;
+import com.androidesk.camera.network.MyHttpClientDownloader;
+import com.androidesk.gallery.R;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 /**
  * Collection of utility functions used in this package.
@@ -384,10 +392,6 @@ public class Util {
 		new Thread(new BackgroundJob(activity, job, dialog, handler)).start();
 	}
 
-	private void get() {
-
-	}
-
 	// Returns an intent which is used for "set as" menu items.
 	public static Intent createSetAsIntent(IImage image) {
 		Uri u = image.fullSizeImageUri();
@@ -395,6 +399,46 @@ public class Util {
 		intent.setDataAndType(u, image.getMimeType());
 		intent.putExtra("mimeType", image.getMimeType());
 		return intent;
+	}
+
+	public static boolean setImageWithDownload(final IImage image, final Activity act,
+			final Handler handler) {
+		final Uri u = image.fullSizeImageUri();
+		if ("http".equals(u.getScheme())) {
+			final ProgressDialog mMediaScanningDialog = ProgressDialog.show(act, null, act
+					.getResources().getString(R.string.wait), true, false);
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					BitmapFactory.Options options = new Options();
+					Bitmap bitmap = BitmapManager.instance().decodeNetworkUri(
+							URI.create(u.toString()), options, new MyHttpClientDownloader(act),
+							null);
+
+					File root = Environment.getExternalStorageDirectory();
+					File dir = new File(root, "wallpaper");
+					String name = image.getTitle() + ".jpg";
+					final Uri uri = ImageManager.addImage(act.getContentResolver(),
+							image.getTitle(), image.getDateTaken(), null, dir.toString(), name,
+							bitmap, null, new int[1]);
+
+					handler.post(new Runnable() {
+						@Override
+						public void run() {
+							mMediaScanningDialog.cancel();
+
+							Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
+							intent.setDataAndType(uri, image.getMimeType());
+							intent.putExtra("mimeType", image.getMimeType());
+
+							act.startActivity(Intent.createChooser(intent,
+									act.getText(R.string.setImage)));
+						}
+					});
+				}
+			}).start();
+			return true;
+		} else return false;
 	}
 
 	// Returns Options that set the puregeable flag for Bitmap decode.

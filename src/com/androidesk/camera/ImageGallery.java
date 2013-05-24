@@ -375,7 +375,6 @@ public class ImageGallery extends NoSearchActivity implements GridViewSpecial.Li
 		}
 
 		mAllImages = checkHttpDataIfNeed();
-		System.out.println(String.format(" mAllImages.getCount() %s", mAllImages.getCount()));
 		if (mAllImages == null) {
 			mParam = allImages(!unmounted && !scanning);
 			mAllImages = ImageManager.makeImageList(getContentResolver(), mParam);
@@ -685,12 +684,13 @@ public class ImageGallery extends NoSearchActivity implements GridViewSpecial.Li
 				MenuHelper.MenuItemsResult r = MenuHelper.addImageMenuItems(menu,
 						MenuHelper.INCLUDE_ALL, ImageGallery.this, mHandler, mDeletePhotoRunnable,
 						new MenuHelper.MenuInvoker() {
-							public void run(MenuHelper.MenuCallback cb) {
+							public boolean run(MenuHelper.MenuCallback cb) {
 								if (!canHandleEvent()) {
-									return;
+									return true;
 								}
 								cb.run(getCurrentImageUri(), getCurrentImage());
 								mGvs.invalidateImage(mGvs.getCurrentSelection());
+								return true;
 							}
 						});
 

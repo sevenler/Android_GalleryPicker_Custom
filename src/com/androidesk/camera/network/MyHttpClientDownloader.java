@@ -50,13 +50,9 @@ public class MyHttpClientDownloader {
 			httpRequest.abort();
 			return null;
 		}
-		long begin = System.currentTimeMillis();
 		byte[] bytes = Stream.toByteArray(entity, options);
 		if(bytes == null) return null;
-		System.out.println(String.format(" ======== get stream begin %s %s %s", imageUri,options, options.mCancel));
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-		long end = System.currentTimeMillis();
-		System.out.println(String.format("  ========= get stream begin  %s %s  %s %s============", imageUri, (end - begin),options, options.mCancel));
 		return bis;
 	}
 	

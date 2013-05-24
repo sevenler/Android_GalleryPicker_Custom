@@ -92,7 +92,6 @@ public class ImageList extends BaseImageList implements IImageList {
 	private static final int INDEX_ID = 0;
 	private static final int INDEX_DATA_PATH = 1;
 	private static final int INDEX_DATE_TAKEN = 2;
-	private static final int INDEX_MINI_THUMB_MAGIC = 3;
 	private static final int INDEX_ORIENTATION = 4;
 	private static final int INDEX_TITLE = 5;
 	private static final int INDEX_MIME_TYPE = 6;
@@ -111,7 +110,6 @@ public class ImageList extends BaseImageList implements IImageList {
 		if (dateTaken == 0) {
 			dateTaken = cursor.getLong(INDEX_DATE_MODIFIED) * 1000;
 		}
-		long miniThumbMagic = cursor.getLong(INDEX_MINI_THUMB_MAGIC);
 		int orientation = cursor.getInt(INDEX_ORIENTATION);
 		String title = cursor.getString(INDEX_TITLE);
 		String mimeType = cursor.getString(INDEX_MIME_TYPE);

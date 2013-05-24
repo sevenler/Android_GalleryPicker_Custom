@@ -77,19 +77,11 @@ public class ImageDecoder {
 	public Bitmap decode(ImageSize targetSize, Options decodeOptions, ImageScaleType scaleType,
 			ViewScaleType viewScaleType) throws IOException {
 		if (decodeOptions.mCancel) return null;
-		long beg = System.currentTimeMillis();
-		System.out.println(String.format(" begin get options decoding uri:%s cancel:%s", imageUri,
-				decodeOptions.mCancel));
 		decodeOptions = getBitmapOptionsForImageDecoding(targetSize, scaleType, viewScaleType,
 				decodeOptions);
-		long begin = System.currentTimeMillis();
+		if(targetSize == null) targetSize = new ImageSize(decodeOptions.outWidth, decodeOptions.outHeight);
 
-		System.out.println(String.format(" decodeing begin duration:%s uri:%s cancel:%s",
-				(begin - beg), imageUri, decodeOptions.mCancel));
 		if (decodeOptions.mCancel) return null;
-		long end = System.currentTimeMillis();
-		System.out.println(String.format(" decodeing uri:%s duration:%s options:%s cacel:%s",
-				imageUri, (end - begin), decodeOptions, decodeOptions.mCancel));
 
 		if (mBytes == null) return null;
 		decodeOptions.inJustDecodeBounds = false;
@@ -115,15 +107,12 @@ public class ImageDecoder {
 		if (decodeOptions == null) decodeOptions = new Options();
 		decodeOptions.inSampleSize = computeImageScale(targetSize, scaleType, viewScaleType,
 				decodeOptions);
-		decodeOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
 		return decodeOptions;
 	}
 
 	@SuppressWarnings("deprecation")
 	private int computeImageScale(ImageSize targetSize, ImageScaleType scaleType,
 			ViewScaleType viewScaleType, Options options) throws IOException {
-		int targetWidth = targetSize.getWidth();
-		int targetHeight = targetSize.getHeight();
 
 		// decode image size
 		options.inJustDecodeBounds = true;
@@ -134,6 +123,8 @@ public class ImageDecoder {
 		int scale = 1;
 		int imageWidth = options.outWidth;
 		int imageHeight = options.outHeight;
+		int targetWidth = ((targetSize == null) ? imageWidth : targetSize.getWidth());
+		int targetHeight = ((targetSize == null) ? imageHeight : targetSize.getHeight());
 		int widthScale = imageWidth / targetWidth;
 		int heightScale = imageHeight / targetHeight;
 

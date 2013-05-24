@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.READ_SMS" />
 
     <application
+        android:name="com.androidesk.camera.GPApplication"
         android:icon="@drawable/indicator_autocrop"
         android:label="@string/camera_label"
         android:taskAffinity=""

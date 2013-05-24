@@ -141,8 +141,6 @@ public class Image extends BaseImage implements IImage {
 		return true;
 	}
 
-	private static final String[] THUMB_PROJECTION = new String[] { BaseColumns._ID, };
-
 	public Bitmap thumbBitmap(boolean rotateAsNeeded) {
 		Bitmap bitmap = null;
 		BitmapFactory.Options options = new BitmapFactory.Options();

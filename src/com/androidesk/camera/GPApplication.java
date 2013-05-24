@@ -1,6 +1,7 @@
 package com.androidesk.camera;
 
 import android.app.Application;
+import android.content.Context;
 
 public class GPApplication extends Application{
 
@@ -8,7 +9,9 @@ public class GPApplication extends Application{
 	public void onCreate() {
 		super.onCreate();
 		
-		DisplayManager.instance().initialize(getApplicationContext());
+		Context ctx = getApplicationContext();
+		DisplayManager.instance().initialize(ctx);
+		CacheManager.instance().initialize(ctx);
 	}
 
 }

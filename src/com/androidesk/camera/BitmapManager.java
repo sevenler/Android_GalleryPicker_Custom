@@ -16,7 +16,9 @@
 
 package com.androidesk.camera;
 
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
@@ -24,15 +26,11 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.provider.MediaStore.Images;
@@ -42,6 +40,7 @@ import android.util.Log;
 import com.androidesk.camera.gallery.BitmapCallback;
 import com.androidesk.camera.gallery.ImageDecoder;
 import com.androidesk.camera.network.MyHttpClientDownloader;
+import com.nostra13.universalimageloader.cache.disc.DiscCacheAware;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
 
@@ -237,39 +236,17 @@ public class BitmapManager {
 		return b;
 	}
 
-	public static final int DEFAULT_THREAD_POOL_SIZE = 5;
-	public static final int DEFAULT_THREAD_PRIORITY = Thread.NORM_PRIORITY - 1;
-	private Executor mDecodeExecutor = new ThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE,
-			DEFAULT_THREAD_POOL_SIZE, 0L, TimeUnit.MILLISECONDS,
-			new LinkedBlockingQueue<Runnable>(), new DefaultThreadFactory(DEFAULT_THREAD_PRIORITY));
-
-	private static class DefaultThreadFactory implements ThreadFactory {
-		private static final AtomicInteger poolNumber = new AtomicInteger(1);
-
-		private final ThreadGroup group;
-		private final AtomicInteger threadNumber = new AtomicInteger(1);
-		private final String namePrefix;
-		private final int threadPriority;
-
-		DefaultThreadFactory(int threadPriority) {
-			this.threadPriority = threadPriority;
-			SecurityManager s = System.getSecurityManager();
-			group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-			namePrefix = "pool-" + poolNumber.getAndIncrement() + "-thread-";
-		}
-
-		public Thread newThread(Runnable r) {
-			Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
-			if (t.isDaemon()) t.setDaemon(false);
-			t.setPriority(threadPriority);
-			return t;
-		}
-	}
+	private final Executor mDecodeExecutor = CacheManager.instance().getDecodeExecutor();
+	private final DiscCacheAware mDiscCache = CacheManager.instance().getDiscCache();
+	private final File mDiscCacheDir = CacheManager.instance().getDiscCacheDir();
 
 	private static final String URI_FORMAT = "%s_%sx%s";
+	private static final String LOAD_FROM_CACHE = "load %s from disc cache %s";
+	private static final String LOAD_FROM_NETWORK = "load %s from with new url decode";
+	private static final String CACHE_IT = "cache %s to disc %s";
 
-	private static int generateLoadKey(URI uri, int width, int height) {
-		return String.format(URI_FORMAT, uri.toString(), width, height).hashCode();
+	private static String generateLoadKey(URI uri, int width, int height) {
+		return String.format(URI_FORMAT, uri.toString(), width, height);
 	}
 
 	public Bitmap decodeNetworkUri(final URI uri, final BitmapFactory.Options options,
@@ -290,8 +267,8 @@ public class BitmapManager {
 
 		final int width = ((imageSize == null) ? 0 : imageSize.getWidth());
 		final int height = ((imageSize == null) ? 0 : imageSize.getHeight());
-		int key = generateLoadKey(uri, width, height);
-		setDecodingOptions(thread, options, key);
+		final String cacheKey = generateLoadKey(uri, width, height);
+		setDecodingOptions(thread, options, cacheKey.hashCode());
 
 		if (options.mCancel) return null;
 		final Bitmap[] result = new Bitmap[1];
@@ -299,7 +276,19 @@ public class BitmapManager {
 		Runnable run = new Runnable() {
 			@Override
 			public void run() {
-				ImageDecoder decoder = new ImageDecoder(uri, imageDownloader);
+				ImageDecoder decoder;
+
+				File discCache = mDiscCache.get(cacheKey);
+				boolean isCached = discCache.exists();
+				if (isCached) {// 从缓存中加载
+					decoder = new ImageDecoder(URI.create("file://" + discCache.getAbsolutePath()),
+							imageDownloader);
+					Log.i(TAG, String.format(LOAD_FROM_CACHE, uri.toString(), discCache.getName()));
+				} else {
+					decoder = new ImageDecoder(uri, imageDownloader);
+					Log.i(TAG, String.format(LOAD_FROM_NETWORK, uri.toString()));
+				}
+
 				try {
 					result[0] = decoder.decode(imageSize, options,
 							ImageScaleType.IN_SAMPLE_POWER_OF_2);
@@ -307,8 +296,21 @@ public class BitmapManager {
 					e.printStackTrace();
 				}
 
-				removeDecodingOptions(thread);
 				final Bitmap bitmap = result[0];
+				if (!isCached && (bitmap != null)) {
+					File file = new File(mDiscCacheDir.getAbsolutePath(), discCache.getName());
+					try {
+						file.createNewFile();
+						FileOutputStream outputStream = new FileOutputStream(file);
+						bitmap.compress(CompressFormat.JPEG, 75, outputStream);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					mDiscCache.put(cacheKey, file);
+					Log.i(TAG, String.format(CACHE_IT, uri.toString(), discCache.getName()));
+				}
+
+				removeDecodingOptions(thread);
 				if (callback != null) {
 					callback.setRotateBitmap(new RotateBitmap(bitmap));
 					callback.submit();
@@ -320,4 +322,5 @@ public class BitmapManager {
 		else run.run();
 		return result[0];
 	}
+
 }

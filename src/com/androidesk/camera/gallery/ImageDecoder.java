@@ -8,12 +8,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 
-import com.androidesk.camera.network.MyHttpClientDownloader;
+import com.androidesk.camera.network.ImageDownloader;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
 import com.nostra13.universalimageloader.core.assist.ViewScaleType;
-import com.nostra13.universalimageloader.core.download.ImageDownloader;
 import com.nostra13.universalimageloader.utils.L;
 
 /**
@@ -31,7 +30,7 @@ public class ImageDecoder {
 	private static final String LOG_IMAGE_SCALED = "Subsampled image (%1$dx%2$d) was scaled to %3$dx%4$d";
 
 	private final URI imageUri;
-	private final MyHttpClientDownloader imageDownloader;
+	private final ImageDownloader imageDownloader;
 
 	private boolean loggingEnabled;
 
@@ -43,7 +42,7 @@ public class ImageDecoder {
 	 *            "file:///mnt/sdcard/image.png")
 	 * @param imageDownloader Image downloader
 	 */
-	public ImageDecoder(URI imageUri, MyHttpClientDownloader imageDownloader) {
+	public ImageDecoder(URI imageUri, ImageDownloader imageDownloader) {
 		this.imageUri = imageUri;
 		this.imageDownloader = imageDownloader;
 	}
@@ -116,7 +115,7 @@ public class ImageDecoder {
 
 		// decode image size
 		options.inJustDecodeBounds = true;
-		mBytes = imageDownloader.getByteArrayFromNetwork(imageUri, options);
+		mBytes = imageDownloader.getByteArray(imageUri, options);
 		if (mBytes == null) return options.inSampleSize;
 		BitmapFactory.decodeByteArray(mBytes, 0, mBytes.length, options);
 

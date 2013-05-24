@@ -3,6 +3,7 @@ package com.androidesk.camera.network;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,8 +24,7 @@ import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 
-
-public class MyHttpClientDownloader {
+public class MyHttpClientDownloader extends ImageDownloader {
 	private HttpClient httpClient;
 
 	public MyHttpClientDownloader(HttpClient httpClient) {
@@ -41,28 +41,28 @@ public class MyHttpClientDownloader {
 	}
 
 	public InputStream getStreamFromNetwork(URI imageUri, Options options) throws IOException {
-		if(options.mCancel) return null;
+		if (options.mCancel) return null;
 		HttpGet httpRequest = new HttpGet(imageUri.toString());
 		HttpResponse response = httpClient.execute(httpRequest);
-		
+
 		HttpEntity entity = response.getEntity();
-		if(options.mCancel){
+		if (options.mCancel) {
 			httpRequest.abort();
 			return null;
 		}
 		byte[] bytes = Stream.toByteArray(entity, options);
-		if(bytes == null) return null;
+		if (bytes == null) return null;
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 		return bis;
 	}
-	
+
 	public byte[] getByteArrayFromNetwork(URI imageUri, Options options) throws IOException {
-		if(options.mCancel) return null;
+		if (options.mCancel) return null;
 		HttpGet httpRequest = new HttpGet(imageUri.toString());
 		HttpResponse response = httpClient.execute(httpRequest);
-		
+
 		HttpEntity entity = response.getEntity();
-		if(options.mCancel){
+		if (options.mCancel) {
 			httpRequest.abort();
 			return null;
 		}
@@ -115,7 +115,7 @@ final class Stream {
 		if (entity == null) {
 			throw new IllegalArgumentException("HTTP entity may not be null");
 		}
-		if(options.mCancel) return null;
+		if (options.mCancel) return null;
 		InputStream instream = entity.getContent();
 		if (instream == null) {
 			return null;
@@ -124,22 +124,39 @@ final class Stream {
 			if (entity.getContentLength() > Integer.MAX_VALUE) {
 				throw new IllegalArgumentException("HTTP entity too large to be buffered in memory");
 			}
-			if(options.mCancel) return null;
+			if (options.mCancel) return null;
 			int i = (int)entity.getContentLength();
 			if (i < 0) {
 				i = 4096;
 			}
-			if(options.mCancel) return null;
+			if (options.mCancel) return null;
 			ByteArrayBuffer buffer = new ByteArrayBuffer(i);
 			byte[] tmp = new byte[4096];
 			int l;
 			while ((l = instream.read(tmp)) != -1) {
-				if(options.mCancel) return null;
+				if (options.mCancel) return null;
 				buffer.append(tmp, 0, l);
 			}
 			return buffer.toByteArray();
 		} finally {
 			instream.close();
 		}
+	}
+
+	public static byte[] toByteArray(final InputStream instream, Options options)
+			throws IOException {
+		if (options.mCancel) return null;
+		ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+
+		int bufferSize = 1024;
+		byte[] buffer = new byte[bufferSize];
+
+		int len = 0;
+		while ((len = instream.read(buffer)) != -1) {
+			if (options.mCancel) return null;
+			byteBuffer.write(buffer, 0, len);
+		}
+
+		return byteBuffer.toByteArray();
 	}
 }

@@ -25,9 +25,6 @@ public class HttpGalleryPicker extends GalleryPicker {
 		checkBucketIds(allItems);
 		if (mAbort) return;
 
-		checkThumbBitmap(allItems);
-		if (mAbort) return;
-		
 		checkLowStorage();
 	}
 
@@ -56,6 +53,7 @@ public class HttpGalleryPicker extends GalleryPicker {
 			Item item = new Item(Item.TYPE_NORMAL_HTTP, key, entry.getValue(), list);
 
 			allItems.add(item);
+			checkThumbBitmap(item);
 
 			if (mAbort) return;
 			final Item finalItem = item;

@@ -249,12 +249,12 @@ public class BitmapManager {
 		return String.format(URI_FORMAT, uri.toString(), width, height);
 	}
 
-	public Bitmap decodeNetworkUri(final URI uri, final BitmapFactory.Options options,
+	public Bitmap decodeBitmap(final URI uri, final BitmapFactory.Options options,
 			final MyHttpClientDownloader imageDownloader, final BitmapCallback callback) {
-		return decodeNetworkUri(uri, null, options, imageDownloader, callback);
+		return decodeBitmap(uri, null, options, imageDownloader, callback);
 	}
 
-	public Bitmap decodeNetworkUri(final URI uri, final ImageSize imageSize,
+	public Bitmap decodeBitmap(final URI uri, final ImageSize imageSize,
 			final BitmapFactory.Options options, final MyHttpClientDownloader imageDownloader,
 			final BitmapCallback callback) {
 		if (options.mCancel) return null;
@@ -280,11 +280,11 @@ public class BitmapManager {
 
 				File discCache = mDiscCache.get(cacheKey);
 				boolean isCached = discCache.exists();
-				if (isCached) {// 从缓存中加载
+				if (isCached) {// decode from disc cache
 					decoder = new ImageDecoder(URI.create("file://" + discCache.getAbsolutePath()),
 							imageDownloader);
 					Log.i(TAG, String.format(LOAD_FROM_CACHE, uri.toString(), discCache.getName()));
-				} else {
+				} else {// decode from source
 					decoder = new ImageDecoder(uri, imageDownloader);
 					Log.i(TAG, String.format(LOAD_FROM_NETWORK, uri.toString()));
 				}
@@ -297,7 +297,7 @@ public class BitmapManager {
 				}
 
 				final Bitmap bitmap = result[0];
-				if (!isCached && (bitmap != null)) {
+				if (!isCached && (bitmap != null)) {// cache to disc
 					File file = new File(mDiscCacheDir.getAbsolutePath(), discCache.getName());
 					try {
 						file.createNewFile();
@@ -318,7 +318,8 @@ public class BitmapManager {
 			}
 		};
 
-		if (callback != null) mDecodeExecutor.execute(run);// 异步加载
+		// if the callback is not null ,it means need asynchronous execute
+		if (callback != null) mDecodeExecutor.execute(run);
 		else run.run();
 		return result[0];
 	}

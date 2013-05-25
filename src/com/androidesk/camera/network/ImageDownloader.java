@@ -37,7 +37,6 @@ public abstract class ImageDownloader {
 	 */
 	public InputStream getStream(URI imageUri, Options options) throws IOException {
 		String scheme = imageUri.getScheme();
-		System.out.println(String.format("getStream %s %s", imageUri, scheme));
 		if (PROTOCOL_HTTP.equals(scheme) || PROTOCOL_HTTPS.equals(scheme)
 				|| PROTOCOL_FTP.equals(scheme)) {
 			return getStreamFromNetwork(imageUri, options);

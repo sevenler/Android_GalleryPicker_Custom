@@ -11,12 +11,15 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.util.Log;
 
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.gallery.IImageList;
 import com.androidesk.camera.gallery.UrlImageList;
 
 public class HttpGalleryPicker extends GalleryPicker {
+	public static final String TAG = "HttpGalleryPicker";
+	public static final String MESSAGE_LOAD_THUMB = "need thumb size %sx%s, request thumb size %sx%s and response size %sx%s";
 
 	@Override
 	protected void workerRun() {
@@ -110,7 +113,7 @@ public class HttpGalleryPicker extends GalleryPicker {
 
 		pdpaint.setStyle(Paint.Style.FILL);
 		c.drawRect(0, 0, width, height, pdpaint);
-
+		
 		for (int i = 0; i < 4; i++) {
 			if (mAbort) {
 				return null;
@@ -119,26 +122,20 @@ public class HttpGalleryPicker extends GalleryPicker {
 			Bitmap temp = null;
 			IImage image = i < count ? images.getImageAt(i) : null;
 
+			final int requestWidth = (int)(imageWidth * 1.3);
+			final int requestHeight = (int)(imageHeight * 1.3);
 			if (image != null) {
-				temp = image.thumbBitmap(imageWidth, imageHeight);
+				temp = image.thumbBitmap(requestWidth, requestHeight);
 			}
 
 			if (temp != null) {
+				Log.i(TAG, String.format(MESSAGE_LOAD_THUMB, imageWidth, imageHeight, requestWidth,
+						requestHeight, temp.getWidth(), temp.getHeight()));
 				temp = Util.transform(m, temp, imageWidth, imageHeight, true, Util.RECYCLE_INPUT);
 			}
 
-			Bitmap thumb = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
-			Canvas tempCanvas = new Canvas(thumb);
-			if (temp != null) {
-				tempCanvas.drawBitmap(temp, new Matrix(), new Paint());
-			}
-			mCellOutline.setBounds(0, 0, imageWidth, imageHeight);
-			mCellOutline.draw(tempCanvas);
-
-			placeImage(thumb, c, pdpaint, imageWidth, padding, imageHeight, padding, offsetWidth,
+			placeImage(temp, c, pdpaint, imageWidth, padding, imageHeight, padding, offsetWidth,
 					offsetHeight, i);
-
-			thumb.recycle();
 
 			if (temp != null) {
 				temp.recycle();
@@ -146,16 +143,6 @@ public class HttpGalleryPicker extends GalleryPicker {
 		}
 
 		return b;
-	}
-
-	private Bitmap makeMiniThumbBitmapWithLarge(int width, int height, IImageList images) {
-		final int padding = 30;
-		final int imageWidth = width - padding;
-		final int imageHeight = height - padding;
-
-		int count = images.getCount();
-		if (count == 0) return Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_4444);
-		else return images.getImageAt(0).thumbBitmap(imageWidth, imageHeight);
 	}
 
 	// This is run in worker thread.

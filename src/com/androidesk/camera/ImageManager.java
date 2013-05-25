@@ -395,6 +395,11 @@ public class ImageManager {
 		public int getImageIndex(IImage image) {
 			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public boolean refreshAble() {
+			return false;
+		}
 	}
 
 	public static ImageListParam getImageListParam(DataLocation location, int inclusion, int sort,

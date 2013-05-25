@@ -72,4 +72,8 @@ public class CachedImageList implements IImageList {
 	public void close() {
 
 	}
+	
+	public boolean refreshAble(){
+		return false;
+	}
 }

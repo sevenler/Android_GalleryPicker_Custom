@@ -268,4 +268,8 @@ public abstract class BaseImage implements IImage {
 
 	public void setBitmapLoadedCallback(BitmapCallback callback) {
 	}
+	
+	public boolean refreshAble(){
+		return false;
+	}
 }

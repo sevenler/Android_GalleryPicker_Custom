@@ -16,14 +16,20 @@
 
 package com.androidesk.camera;
 
-import com.androidesk.gallery.R;
-
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
+
+import com.androidesk.gallery.R;
 
 class GalleryPickerItem extends ImageView {
 	private Drawable mFrame;
@@ -73,6 +79,7 @@ class GalleryPickerItem extends ImageView {
 				mOverlay.setBounds(w - mOverlay.getIntrinsicWidth(),
 						h - mOverlay.getIntrinsicHeight(), w, h);
 			}
+
 		}
 
 		mFrame.draw(canvas);
@@ -88,9 +95,35 @@ class GalleryPickerItem extends ImageView {
 		mFrameBounds.setEmpty();
 	}
 
-	public void setOverlay(int overlayId) {
+	public void setOverlay(int overlayId, String title) {
 		if (overlayId >= 0) {
-			mOverlay = getResources().getDrawable(overlayId);
+			Bitmap overlay = BitmapFactory.decodeResource(getResources(), overlayId);
+
+			float scale = getResources().getDisplayMetrics().density;
+			final int width = (int)(overlay.getWidth() * scale);
+			final int height = (int)(overlay.getHeight() * scale);
+			final Matrix matrix = new Matrix();
+			matrix.setScale(scale, scale);
+
+			final Bitmap b = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+			Canvas canvas = new Canvas(b);
+			canvas.drawBitmap(overlay, matrix, new Paint());
+			overlay.recycle();
+
+			Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+			paint.setColor(Color.rgb(61, 61, 61));
+			paint.setTextSize((int)(20 * scale));
+			paint.setShadowLayer(1f, 0f, 1f, Color.WHITE);
+
+			Rect bounds = new Rect();
+			paint.getTextBounds(title, 0, title.length(), bounds);
+			int x = (width - bounds.width()) / 2;
+			int y = (height + bounds.height()) / 2;
+
+			canvas.drawText(title, x * scale, y * scale, paint);
+
+			BitmapDrawable bitmapDrawable = new BitmapDrawable(b);
+			mOverlay = (Drawable)bitmapDrawable;
 			mFrameBounds.setEmpty();
 		} else {
 			mOverlay = null;

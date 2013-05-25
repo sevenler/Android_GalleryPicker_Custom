@@ -411,7 +411,7 @@ public class Util {
 				@Override
 				public void run() {
 					BitmapFactory.Options options = new Options();
-					Bitmap bitmap = BitmapManager.instance().decodeNetworkUri(
+					Bitmap bitmap = BitmapManager.instance().decodeBitmap(
 							URI.create(u.toString()), options, new MyHttpClientDownloader(act),
 							null);
 

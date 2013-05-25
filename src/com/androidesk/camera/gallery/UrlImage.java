@@ -90,7 +90,7 @@ public class UrlImage extends BaseImage implements IImage {
 	private Bitmap decode(int width, int height, BitmapCallback callback) {
 		URI uri = URI.create(toPath(getTitle(), width, height));
 
-		return BitmapManager.instance().decodeNetworkUri(uri, new ImageSize(width, height),
+		return BitmapManager.instance().decodeBitmap(uri, new ImageSize(width, height),
 				mOptions, imageDownloader, callback);
 	}
 

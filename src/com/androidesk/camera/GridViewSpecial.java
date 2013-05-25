@@ -115,7 +115,7 @@ class GridViewSpecial extends View {
 					/ (COLUMN_NO + 1);
 		}
 		mCellSizeChoices = new LayoutSpec[] { new LayoutSpec(67, 67, 8, 0, metrics),
-				new LayoutSpec(width, width, CEL_SPECING, 0, metrics), };
+				new LayoutSpec(width, width * 4 / 5, CEL_SPECING, 0, metrics), };
 	}
 
 	// Converts dp to pixel.
@@ -294,9 +294,9 @@ class GridViewSpecial extends View {
 		cellOutline.setBounds(0, 0, w, h);
 		Canvas canvas = new Canvas();
 
-		canvas.setBitmap(mOutline[OUTLINE_EMPTY]);
+		/*canvas.setBitmap(mOutline[OUTLINE_EMPTY]);
 		cellOutline.setState(EMPTY_STATE_SET);
-		cellOutline.draw(canvas);
+		cellOutline.draw(canvas);*/
 
 		canvas.setBitmap(mOutline[OUTLINE_PRESSED]);
 		cellOutline.setState(PRESSED_ENABLED_FOCUSED_SELECTED_WINDOW_FOCUSED_STATE_SET);

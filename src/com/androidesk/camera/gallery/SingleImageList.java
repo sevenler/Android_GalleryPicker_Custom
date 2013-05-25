@@ -74,4 +74,8 @@ public class SingleImageList implements IImageList {
 		mSingleImage = null;
 		mUri = null;
 	}
+	
+	public boolean refreshAble(){
+		return false;
+	}
 }

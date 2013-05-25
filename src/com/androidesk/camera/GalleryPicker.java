@@ -58,7 +58,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidesk.camera.gallery.IImage;
@@ -469,8 +468,6 @@ public class GalleryPicker extends NoSearchActivity {
 		}
 	}
 
-	private static final int THUMB_SIZE = 142;
-
 	// This is run in the worker thread.
 	protected void checkThumbBitmap(ArrayList<Item> allItems) {
 		for (Item item : allItems) {
@@ -479,7 +476,8 @@ public class GalleryPicker extends NoSearchActivity {
 	}
 
 	protected void checkThumbBitmap(Item item) {
-		final Bitmap b = makeMiniThumbBitmap(THUMB_SIZE, THUMB_SIZE, item.mImageList);
+		loadDrawableIfNeeded();
+		final Bitmap b = makeMiniThumbBitmap(mItemWidth, mItemHeight, item.mImageList);
 		if (mAbort) {
 			if (b != null) b.recycle();
 			return;
@@ -566,6 +564,8 @@ public class GalleryPicker extends NoSearchActivity {
 	Drawable mFrameGalleryMask;
 	Drawable mCellOutline;
 	Drawable mVideoOverlay;
+	int mItemWidth;
+	int mItemHeight;
 
 	protected void loadDrawableIfNeeded() {
 		if (mFrameGalleryMask != null) return; // already loaded
@@ -573,6 +573,8 @@ public class GalleryPicker extends NoSearchActivity {
 		mFrameGalleryMask = r.getDrawable(R.drawable.frame_gallery_preview_album_mask);
 		mCellOutline = r.getDrawable(android.R.drawable.gallery_thumb);
 		mVideoOverlay = r.getDrawable(R.drawable.ic_gallery_video_overlay);
+		mItemWidth = (int)getResources().getDimension(R.dimen.gridItemImageWidthSize);
+		mItemHeight = (int)getResources().getDimension(R.dimen.gridItemImageHeightSize);
 	}
 
 	private void unloadDrawable() {
@@ -748,12 +750,14 @@ class Item {
 	// select them), then present more detailed information when we have it.
 	public Bitmap mThumbBitmap; // the thumbnail bitmap for the image list
 
+	public static final int UNKNOW_COUNT = -1;
+
 	public Item(int type, String bucketId, String name, IImageList list) {
 		mType = type;
 		mBucketId = bucketId;
 		mName = name;
 		mImageList = list;
-		mCount = list.getCount();
+		mCount = list.refreshAble() ? UNKNOW_COUNT : list.getCount();
 		if (mCount > 0) {
 			mFirstImageUri = list.getImageAt(0).fullSizeImageUri();
 		} else {
@@ -869,24 +873,24 @@ class GalleryPickerAdapter extends BaseAdapter {
 			v = convertView;
 		}
 
-		TextView titleView = (TextView)v.findViewById(R.id.title);
+		// TextView titleView = (TextView)v.findViewById(R.id.title);
 
 		GalleryPickerItem iv = (GalleryPickerItem)v.findViewById(R.id.thumbnail);
 		Item item = mItems.get(position);
-		iv.setOverlay(item.getOverlay());
+		String title = item.mName
+				+ ((item.mCount == Item.UNKNOW_COUNT) ? "" : (" (" + item.mCount + ")"));
+		iv.setOverlay(item.getOverlay(), title);
+
 		if (item.mThumbBitmap != null) {
 			iv.setImageBitmap(item.mThumbBitmap);
-			String title = item.mName + " (" + item.mCount + ")";
-			titleView.setText(title);
 		} else {
 			iv.setImageResource(android.R.color.transparent);
-			titleView.setText(item.mName);
 		}
 
 		// An workaround due to a bug in TextView. If the length of text is
 		// different from the previous in convertView, the layout would be
 		// wrong.
-		titleView.requestLayout();
+		// titleView.requestLayout();
 
 		return v;
 	}

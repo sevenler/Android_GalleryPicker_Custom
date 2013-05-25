@@ -184,6 +184,11 @@ public class UrlImageList extends CachedImageList {
 		}
 		return 0;
 	}
+	
+	@Override
+	public boolean refreshAble(){
+		return true;
+	}
 }
 
 class Catalog extends FileSerialize {

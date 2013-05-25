@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.os.Handler;
+import android.util.Log;
 
 import com.androidesk.camera.gallery.IImage;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
@@ -29,8 +30,8 @@ import com.nostra13.universalimageloader.core.assist.ImageSize;
  * A dedicated decoding thread used by ImageGallery.
  */
 public class ImageLoader {
-	@SuppressWarnings("unused")
 	private static final String TAG = "ImageLoader";
+	public static final String MESSAGE_LOAD_THUMB = "need thumb size %sx%s, request thumb size %sx%s and response size %sx%s";
 
 	// Queue of work to do in the worker thread. The work is done in order.
 	private final ArrayList<WorkItem> mQueue = new ArrayList<WorkItem>();
@@ -137,8 +138,13 @@ public class ImageLoader {
 				// 网络数据请求thumbBitmap
 				IImage image = workItem.mImage;
 				ImageSize size = workItem.mSize;
-				final Bitmap b = image.thumbBitmap(size.getWidth(), size.getHeight());
+				final int requestWidth = (int)(size.getWidth() * 1.3);
+				final int requestHeight = (int)(size.getHeight() * 1.3);
+				final Bitmap b = image.thumbBitmap(requestWidth, requestHeight);
 
+				Log.i(TAG, String.format(MESSAGE_LOAD_THUMB, size.getWidth(), size.getWidth(),
+						requestWidth, requestHeight, b == null ? -1 : b.getWidth(), b == null ? -1
+								: b.getHeight()));
 				if (workItem.mOnLoadedRunnable != null) {
 					workItem.mOnLoadedRunnable.run(b);
 				}

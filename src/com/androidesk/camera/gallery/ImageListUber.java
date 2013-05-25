@@ -290,4 +290,8 @@ public class ImageListUber implements IImageList {
 			mSubList[i].close();
 		}
 	}
+	
+	public boolean refreshAble(){
+		return false;
+	}
 }

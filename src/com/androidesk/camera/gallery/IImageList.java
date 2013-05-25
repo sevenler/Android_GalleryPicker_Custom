@@ -93,4 +93,10 @@ public interface IImageList {
 	 * Closes this list to release resources, no further operation is allowed.
 	 */
 	public void close();
+	
+	/**
+	 * true means can support refresh to add data
+	 * @return
+	 */
+	public boolean refreshAble();
 }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+     <dimen name="gridItemSize">148dip</dimen>
+     <dimen name="gridItemImageSize">142dip</dimen>
+</resources>

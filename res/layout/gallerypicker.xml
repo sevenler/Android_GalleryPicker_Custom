@@ -24,7 +24,7 @@
         android:layout_height="match_parent"
         android:paddingTop="2dip"
         android:numColumns="auto_fit"
-        android:columnWidth="148dp"
+        android:columnWidth="@dimen/gridItemSize"
         android:stretchMode="spacingWidthUniform"
         android:drawSelectorOnTop="false"
         android:cacheColorHint="#000000"

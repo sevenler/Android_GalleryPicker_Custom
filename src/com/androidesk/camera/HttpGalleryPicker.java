@@ -132,10 +132,9 @@ public class HttpGalleryPicker extends GalleryPicker {
 				Log.i(TAG, String.format(MESSAGE_LOAD_THUMB, imageWidth, imageHeight, requestWidth,
 						requestHeight, temp.getWidth(), temp.getHeight()));
 				temp = Util.transform(m, temp, imageWidth, imageHeight, true, Util.RECYCLE_INPUT);
+				placeImage(temp, c, pdpaint, imageWidth, padding, imageHeight, padding, offsetWidth,
+						offsetHeight, i);
 			}
-
-			placeImage(temp, c, pdpaint, imageWidth, padding, imageHeight, padding, offsetWidth,
-					offsetHeight, i);
 
 			if (temp != null) {
 				temp.recycle();

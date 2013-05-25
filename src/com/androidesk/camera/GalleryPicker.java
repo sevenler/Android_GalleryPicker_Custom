@@ -80,6 +80,7 @@ public class GalleryPicker extends NoSearchActivity {
 	GalleryPickerAdapter mAdapter; // mAdapter is only accessed in main thread.
 	boolean mScanning;
 	boolean mUnmounted;
+	boolean mLoadFinish = false;
 
 	@Override
 	public void onCreate(Bundle icicle) {
@@ -156,6 +157,11 @@ public class GalleryPicker extends NoSearchActivity {
 	private void rebake(boolean unmounted, boolean scanning) {
 		if (unmounted == mUnmounted && scanning == mScanning) return;
 		abortWorker();
+		
+		mAdapter.clear();
+		mAdapter.updateDisplay();
+		clearImageLists();
+		
 		mUnmounted = unmounted;
 		mScanning = scanning;
 		updateScanningDialog(mScanning);
@@ -243,21 +249,11 @@ public class GalleryPicker extends NoSearchActivity {
 
 		abortWorker();
 
-		unregisterReceiver(mReceiver);
-		getContentResolver().unregisterContentObserver(mDbObserver);
-
-		// free up some ram
-		mAdapter = null;
-		mGridView.setAdapter(null);
-		unloadDrawable();
 	}
 
 	@Override
 	public void onStart() {
 		super.onStart();
-
-		mAdapter = new GalleryPickerAdapter(getLayoutInflater());
-		mGridView.setAdapter(mAdapter);
 
 		// install an intent filter to receive SD card related events.
 		IntentFilter intentFilter = new IntentFilter();
@@ -284,7 +280,15 @@ public class GalleryPicker extends NoSearchActivity {
 
 	// Create the worker thread.
 	private void startWorker() {
+		boolean isDataChanged = ((GPApplication)getApplication()).mDataChanged;
+		boolean isDataEmpty = mAdapter == null ? true : mAdapter.isEmpty();
+		if(!isDataEmpty && !isDataChanged && mLoadFinish) return;//初始化过数据 数据没有变化 并且上次数据已经加载完成
+		
+		mAdapter = new GalleryPickerAdapter(getLayoutInflater());
+		mGridView.setAdapter(mAdapter);
+		
 		mAbort = false;
+		mLoadFinish = false;
 		mWorkerThread = new Thread("GalleryPicker Worker") {
 			@Override
 			public void run() {
@@ -309,10 +313,24 @@ public class GalleryPicker extends NoSearchActivity {
 			// (We assume that the "what" field in the messages are 0
 			// for runnables).
 			mHandler.removeMessages(0);
-			mAdapter.clear();
-			mAdapter.updateDisplay();
-			clearImageLists();
 		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+		mAdapter.clear();
+		mAdapter.updateDisplay();
+		clearImageLists();
+		
+		// free up some ram
+		mAdapter = null;
+		mGridView.setAdapter(null);
+		unloadDrawable();
+		
+		unregisterReceiver(mReceiver);
+		getContentResolver().unregisterContentObserver(mDbObserver);
 	}
 
 	// This is run in the worker thread.
@@ -467,6 +485,7 @@ public class GalleryPicker extends NoSearchActivity {
 				return;
 			}
 		}
+		mLoadFinish = true;
 	}
 
 	// This is run in the worker thread.

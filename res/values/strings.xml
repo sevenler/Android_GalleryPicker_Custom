@@ -158,6 +158,9 @@
 
     <!-- Menu item for playing the video. -->
     <string name="video_play">Play</string>
+    
+    <!-- Menu item for clear disc cache -->
+    <string name="clear_disc_cache">Clear disc cache</string>
 
     <!-- String indicating an action of picking a picture to use as wallpaper (e.g. set wallpaper from "Pictures") -->
     <string name="camera_pick_wallpaper">Pictures</string>

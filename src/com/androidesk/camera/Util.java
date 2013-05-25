@@ -405,7 +405,7 @@ public class Util {
 			final Handler handler) {
 		final Uri u = image.fullSizeImageUri();
 		if ("http".equals(u.getScheme())) {
-			final ProgressDialog mMediaScanningDialog = ProgressDialog.show(act, null, act
+			final ProgressDialog downloadDialog = ProgressDialog.show(act, null, act
 					.getResources().getString(R.string.wait), true, false);
 			new Thread(new Runnable() {
 				@Override
@@ -425,7 +425,7 @@ public class Util {
 					handler.post(new Runnable() {
 						@Override
 						public void run() {
-							mMediaScanningDialog.cancel();
+							downloadDialog.cancel();
 
 							Intent intent = new Intent(Intent.ACTION_ATTACH_DATA);
 							intent.setDataAndType(uri, image.getMimeType());

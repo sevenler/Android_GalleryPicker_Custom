@@ -16,6 +16,7 @@
 
 package com.androidesk.camera;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -702,7 +703,38 @@ public class GalleryPicker extends NoSearchActivity {
 					}
 				}).setAlphabeticShortcut('p').setIcon(android.R.drawable.ic_menu_preferences);
 
+		menu.add(Menu.NONE, Menu.NONE, MenuHelper.POSITION_CLEAR_DISC_CACHE,
+				R.string.clear_disc_cache)
+				.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+					public boolean onMenuItemClick(MenuItem item) {
+						clearDiscCache(GalleryPicker.this);
+						return true;
+					}
+				}).setIcon(R.drawable.ic_btn_actionmenu_delete_default);
+
 		return true;
+	}
+
+	private static void clearDiscCache(Activity act) {
+		final ProgressDialog clearDialog = ProgressDialog.show(act, null, act.getResources()
+				.getString(R.string.delete_images_message), true, false);
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				File cacheDir = CacheManager.instance().getDiscCacheDir();
+				if (cacheDir.exists()) {
+					File[] caches = cacheDir.listFiles();
+					File temp;
+					Log.i(TAG, String.format("clear %s disc caches", caches.length));
+					for (int i = 0; i < caches.length; i++) {
+						temp = caches[i];
+						temp.delete();
+					}
+				}
+				clearDialog.cancel();
+			}
+		}).start();
 	}
 
 	// image lists created by createImageList() are collected in mAllLists.

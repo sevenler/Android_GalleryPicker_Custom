@@ -64,7 +64,7 @@ public class CacheManager {
 
 	public void initialize(Context context) {
 		if (mDiscCache != null) return;
-		mDiscCacheDir = StorageUtils.getCacheDirectory(context);
+		mDiscCacheDir = new File(StorageUtils.getCacheDirectory(context), "thumb");
 		if(!mDiscCacheDir.exists()) mDiscCacheDir.mkdirs();
 		mDiscCache = new UnlimitedDiscCache(mDiscCacheDir, new HashCodeFileNameGenerator());
 	}

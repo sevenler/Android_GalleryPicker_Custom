@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 
 /**
@@ -26,7 +27,7 @@ public abstract class ImageDownloader {
 	public byte[] getByteArray(URI imageUri, Options options) throws IOException {
 		InputStream in = getStream(imageUri, options);
 		if (in == null) return null;
-		
+
 		byte[] bytes = Stream.toByteArray(in, options);
 		return bytes;
 	}
@@ -45,6 +46,11 @@ public abstract class ImageDownloader {
 		} else {
 			return getStreamFromOtherSource(imageUri, options);
 		}
+	}
+
+	public String getString(URI imageUri) throws IOException {
+		InputStream is = getStream(imageUri, new BitmapFactory.Options());
+		return Stream.convertStreamToString(is);
 	}
 
 	/**

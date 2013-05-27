@@ -28,8 +28,6 @@ import com.androidesk.gallery.R;
  * This activity plays a video from a specified URI.
  */
 public class MovieView extends NoSearchActivity {
-	private static final String TAG = "MovieView";
-
 	private MovieViewControl mControl;
 	private boolean mFinishOnCompletion;
 	private boolean mResumed = false; // Whether this activity has been resumed.

@@ -38,6 +38,8 @@ public class CacheManager {
 
 	public static final int DEFAULT_THREAD_POOL_SIZE = 5;
 	public static final int DEFAULT_THREAD_PRIORITY = Thread.NORM_PRIORITY - 1;
+	
+	private static final String DEFAULT_THUMB_DIRACTROY = "thumb";
 
 	private static class DefaultThreadFactory implements ThreadFactory {
 		private static final AtomicInteger poolNumber = new AtomicInteger(1);
@@ -64,7 +66,7 @@ public class CacheManager {
 
 	public void initialize(Context context) {
 		if (mDiscCache != null) return;
-		mDiscCacheDir = new File(StorageUtils.getCacheDirectory(context), "thumb");
+		mDiscCacheDir = new File(StorageUtils.getCacheDirectory(context), DEFAULT_THUMB_DIRACTROY);
 		if(!mDiscCacheDir.exists()) mDiscCacheDir.mkdirs();
 		mDiscCache = new UnlimitedDiscCache(mDiscCacheDir, new HashCodeFileNameGenerator());
 	}

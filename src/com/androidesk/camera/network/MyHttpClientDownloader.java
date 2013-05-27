@@ -21,7 +21,6 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.util.ByteArrayBuffer;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 
 public class MyHttpClientDownloader extends ImageDownloader {
@@ -35,11 +34,7 @@ public class MyHttpClientDownloader extends ImageDownloader {
 		this.httpClient = Http.createHttpClient(ctx);
 	}
 
-	public String getStringFromNetwork(URI imageUri) throws IOException {
-		InputStream is = getStreamFromNetwork(imageUri, new BitmapFactory.Options());
-		return Stream.convertStreamToString(is);
-	}
-
+	@Override
 	public InputStream getStreamFromNetwork(URI imageUri, Options options) throws IOException {
 		if (options.mCancel) return null;
 		HttpGet httpRequest = new HttpGet(imageUri.toString());
@@ -54,24 +49,6 @@ public class MyHttpClientDownloader extends ImageDownloader {
 		if (bytes == null) return null;
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 		return bis;
-	}
-
-	public byte[] getByteArrayFromNetwork(URI imageUri, Options options) throws IOException {
-		if (options.mCancel) return null;
-		HttpGet httpRequest = new HttpGet(imageUri.toString());
-		HttpResponse response = httpClient.execute(httpRequest);
-
-		HttpEntity entity = response.getEntity();
-		if (options.mCancel) {
-			httpRequest.abort();
-			return null;
-		}
-		byte[] bytes = Stream.toByteArray(entity, options);
-		return bytes;
-	}
-
-	public void readStreamFromEntity(HttpEntity entity) {
-
 	}
 }
 

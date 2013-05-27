@@ -1,5 +1,5 @@
 
-package com.androidesk.camera.network;
+package com.androidesk.camera.network.source;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

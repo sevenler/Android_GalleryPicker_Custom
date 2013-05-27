@@ -12,7 +12,9 @@ import android.net.Uri;
 
 import com.androidesk.camera.BitmapManager;
 import com.androidesk.camera.DisplayManager;
+import com.androidesk.camera.network.ImageDownloader;
 import com.androidesk.camera.network.MyHttpClientDownloader;
+import com.androidesk.camera.network.source.SourceManager;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
 
@@ -26,8 +28,7 @@ public class UrlImage extends BaseImage implements IImage {
 	private static int FULL_PIXELS_WIDTH = DisplayManager.instance().getDesiredWidth();
 	private static int FULL_PIXELS_HEIGHT = DisplayManager.instance().getDesiredHeight();
 
-	private MyHttpClientDownloader imageDownloader;
-	private static final String URL_WALLPAPER = "http://static.androidesk.com/wallpaper?imgid=%s&reso=%sx%s";
+	private ImageDownloader imageDownloader;
 
 	private BitmapFactory.Options mOptions = new BitmapFactory.Options();
 
@@ -38,7 +39,6 @@ public class UrlImage extends BaseImage implements IImage {
 		mContainer = container;
 
 		imageDownloader = new MyHttpClientDownloader(mContext);
-
 		mOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 	}
 
@@ -47,7 +47,7 @@ public class UrlImage extends BaseImage implements IImage {
 	}
 
 	private static String toPath(String id, int width, int height) {
-		return String.format(URL_WALLPAPER, id, width, height);
+		return SourceManager.instance().generateDefaultGetPictureUrl(id, width, height);
 	}
 
 	public IImageList getContainer() {
@@ -90,8 +90,8 @@ public class UrlImage extends BaseImage implements IImage {
 	private Bitmap decode(int width, int height, BitmapCallback callback) {
 		URI uri = URI.create(toPath(getTitle(), width, height));
 
-		return BitmapManager.instance().decodeBitmap(uri, new ImageSize(width, height),
-				mOptions, imageDownloader, callback);
+		return BitmapManager.instance().decodeBitmap(uri, new ImageSize(width, height), mOptions,
+				imageDownloader, callback);
 	}
 
 	@Override
@@ -107,8 +107,7 @@ public class UrlImage extends BaseImage implements IImage {
 	@Override
 	public InputStream fullSizeImageData() {
 		try {
-			InputStream input = imageDownloader.getStreamFromNetwork(URI.create(mUri.toString()),
-					mOptions);
+			InputStream input = imageDownloader.getStream(URI.create(mUri.toString()), mOptions);
 			return input;
 		} catch (IOException ex) {
 			return null;

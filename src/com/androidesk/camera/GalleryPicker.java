@@ -157,11 +157,11 @@ public class GalleryPicker extends NoSearchActivity {
 	private void rebake(boolean unmounted, boolean scanning) {
 		if (unmounted == mUnmounted && scanning == mScanning) return;
 		abortWorker();
-		
+
 		mAdapter.clear();
 		mAdapter.updateDisplay();
 		clearImageLists();
-		
+
 		mUnmounted = unmounted;
 		mScanning = scanning;
 		updateScanningDialog(mScanning);
@@ -248,7 +248,6 @@ public class GalleryPicker extends NoSearchActivity {
 		super.onStop();
 
 		abortWorker();
-
 	}
 
 	@Override
@@ -282,11 +281,13 @@ public class GalleryPicker extends NoSearchActivity {
 	private void startWorker() {
 		boolean isDataChanged = ((GPApplication)getApplication()).mDataChanged;
 		boolean isDataEmpty = mAdapter == null ? true : mAdapter.isEmpty();
-		if(!isDataEmpty && !isDataChanged && mLoadFinish) return;//初始化过数据 数据没有变化 并且上次数据已经加载完成
-		
+		if (!isDataEmpty && !isDataChanged && mLoadFinish) return;// 初始化过数据
+																	// 数据没有变化
+																	// 并且上次数据已经加载完成
+
 		mAdapter = new GalleryPickerAdapter(getLayoutInflater());
 		mGridView.setAdapter(mAdapter);
-		
+
 		mAbort = false;
 		mLoadFinish = false;
 		mWorkerThread = new Thread("GalleryPicker Worker") {
@@ -319,16 +320,16 @@ public class GalleryPicker extends NoSearchActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		
+
 		mAdapter.clear();
 		mAdapter.updateDisplay();
 		clearImageLists();
-		
+
 		// free up some ram
 		mAdapter = null;
 		mGridView.setAdapter(null);
 		unloadDrawable();
-		
+
 		unregisterReceiver(mReceiver);
 		getContentResolver().unregisterContentObserver(mDbObserver);
 	}
@@ -539,7 +540,7 @@ public class GalleryPicker extends NoSearchActivity {
 	// This is run in the main thread.
 	// This is called only if the storage is low.
 	private void checkLowStorageFinished() {
-		Toast.makeText(GalleryPicker.this, R.string.not_enough_space, 5000).show();
+		Toast.makeText(GalleryPicker.this, R.string.not_enough_space, Toast.LENGTH_LONG).show();
 	}
 
 	// IMAGE_LIST_DATA stores the parameters for the four image lists
@@ -924,8 +925,6 @@ class GalleryPickerAdapter extends BaseAdapter {
 			v = convertView;
 		}
 
-		// TextView titleView = (TextView)v.findViewById(R.id.title);
-
 		GalleryPickerItem iv = (GalleryPickerItem)v.findViewById(R.id.thumbnail);
 		Item item = mItems.get(position);
 		String title = item.mName
@@ -937,11 +936,6 @@ class GalleryPickerAdapter extends BaseAdapter {
 		} else {
 			iv.setImageResource(android.R.color.transparent);
 		}
-
-		// An workaround due to a bug in TextView. If the length of text is
-		// different from the previous in convertView, the layout would be
-		// wrong.
-		// titleView.requestLayout();
 
 		return v;
 	}

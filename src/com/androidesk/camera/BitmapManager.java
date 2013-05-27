@@ -39,7 +39,7 @@ import android.util.Log;
 
 import com.androidesk.camera.gallery.BitmapCallback;
 import com.androidesk.camera.gallery.ImageDecoder;
-import com.androidesk.camera.network.MyHttpClientDownloader;
+import com.androidesk.camera.network.ImageDownloader;
 import com.nostra13.universalimageloader.cache.disc.DiscCacheAware;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
@@ -250,12 +250,12 @@ public class BitmapManager {
 	}
 
 	public Bitmap decodeBitmap(final URI uri, final BitmapFactory.Options options,
-			final MyHttpClientDownloader imageDownloader, final BitmapCallback callback) {
+			final ImageDownloader imageDownloader, final BitmapCallback callback) {
 		return decodeBitmap(uri, null, options, imageDownloader, callback);
 	}
 
 	public Bitmap decodeBitmap(final URI uri, final ImageSize imageSize,
-			final BitmapFactory.Options options, final MyHttpClientDownloader imageDownloader,
+			final BitmapFactory.Options options, final ImageDownloader imageDownloader,
 			final BitmapCallback callback) {
 		if (options.mCancel) return null;
 

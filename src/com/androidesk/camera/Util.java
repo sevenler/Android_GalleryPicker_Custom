@@ -43,7 +43,6 @@ import android.view.View.OnClickListener;
 import com.androidesk.camera.gallery.IImage;
 import com.androidesk.camera.network.MyHttpClientDownloader;
 import com.androidesk.gallery.R;
-import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 /**
  * Collection of utility functions used in this package.

@@ -36,6 +36,6 @@ public class AndroideskPicture extends BasePicture {
 		views = picture.getString("views");
 		rank = picture.getString("rank");
 		faverate = picture.getString("favs");
-		url = picture.getJSONObject("fobjs").getString("_1440x1280");
+		url = picture.getString("_id");
 	}
 }

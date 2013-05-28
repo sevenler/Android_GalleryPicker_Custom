@@ -138,11 +138,11 @@ public class ImageLoader {
 				// 网络数据请求thumbBitmap
 				IImage image = workItem.mImage;
 				ImageSize size = workItem.mSize;
-				final int requestWidth = (int)(size.getWidth() * 1.3);
-				final int requestHeight = (int)(size.getHeight() * 1.3);
+				final int requestWidth = (int)(size.getWidth());
+				final int requestHeight = (int)(size.getHeight());
 				final Bitmap b = image.thumbBitmap(requestWidth, requestHeight);
 
-				Log.i(TAG, String.format(MESSAGE_LOAD_THUMB, size.getWidth(), size.getWidth(),
+				Log.i(TAG, String.format(MESSAGE_LOAD_THUMB, size.getWidth(), size.getHeight(),
 						requestWidth, requestHeight, b == null ? -1 : b.getWidth(), b == null ? -1
 								: b.getHeight()));
 				if (workItem.mOnLoadedRunnable != null) {

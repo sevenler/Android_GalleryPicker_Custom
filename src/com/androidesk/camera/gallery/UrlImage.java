@@ -24,6 +24,7 @@ public class UrlImage extends BaseImage implements IImage {
 	private IImageList mContainer;
 
 	private BitmapCallback mCallback;
+	private final String mUrl;
 
 	private static int FULL_PIXELS_WIDTH = DisplayManager.instance().getDesiredWidth();
 	private static int FULL_PIXELS_HEIGHT = DisplayManager.instance().getDesiredHeight();
@@ -32,22 +33,28 @@ public class UrlImage extends BaseImage implements IImage {
 
 	private BitmapFactory.Options mOptions = new BitmapFactory.Options();
 
-	public UrlImage(Context ctx, IImageList container, int index, String title) {
-		super(null, null, index, index, Uri.parse(toPath(title)), toPath(title).toString(),
-				"image/jpeg", 0, title);
+	public UrlImage(Context ctx, IImageList container, int index, String id, String url) {
+		super(null, null, index, index, Uri.parse(toPath(url)), toPath(url).toString(),
+				"image/jpeg", 0, id);
 		mContext = ctx;
 		mContainer = container;
+		mUrl = url;
 
 		imageDownloader = new MyHttpClientDownloader(mContext);
 		mOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 	}
-
-	private static String toPath(String id) {
-		return toPath(id, FULL_PIXELS_WIDTH, FULL_PIXELS_HEIGHT);
+	
+	@Override
+	public String getTitle() {
+		return mTitle;
 	}
 
-	private static String toPath(String id, int width, int height) {
-		return SourceManager.instance().generateDefaultGetPictureUrl(id, width, height);
+	private static String toPath(String url) {
+		return toPath(url, FULL_PIXELS_WIDTH, FULL_PIXELS_HEIGHT);
+	}
+
+	private static String toPath(String url, int width, int height) {
+		return SourceManager.instance().generateDefaultGetPictureUrl(url, width, height);
 	}
 
 	public IImageList getContainer() {
@@ -88,8 +95,7 @@ public class UrlImage extends BaseImage implements IImage {
 	}
 
 	private Bitmap decode(int width, int height, BitmapCallback callback) {
-		URI uri = URI.create(toPath(getTitle(), width, height));
-
+		URI uri = URI.create(SourceManager.instance().generateDefaultGetPictureUrl(mUrl, width, height));
 		return BitmapManager.instance().decodeBitmap(uri, new ImageSize(width, height), mOptions,
 				imageDownloader, callback);
 	}

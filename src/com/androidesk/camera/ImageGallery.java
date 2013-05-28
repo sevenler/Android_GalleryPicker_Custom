@@ -395,7 +395,7 @@ public class ImageGallery extends NoSearchActivity implements GridViewSpecial.Li
 		String cid = intent.getExtras().getString("classId");
 		mClassId = cid;
 		if ("http".equals(uri.getScheme())) {
-			return new UrlImageList(this, UrlImageList.LOCATION_CATALOG, cid, 48);
+			return new UrlImageList(this, UrlImageList.LOCATION_CATALOG, cid);
 		} else return null;
 	}
 

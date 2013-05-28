@@ -28,7 +28,7 @@ public class UrlImageList extends CachedImageList {
 	public static final int LOCATION_CATALOG = 2;
 
 	public UrlImageList(Context ctx, int location, String catalog) {
-		this(ctx, location, catalog, 30);
+		this(ctx, location, catalog, 48);
 	}
 
 	public UrlImageList(Context ctx, int location, String catalog, int size) {
@@ -39,7 +39,7 @@ public class UrlImageList extends CachedImageList {
 		mCatalog = catalog;
 		mSize = size;
 
-		mSourceManager = SourceManager.instance().initialize(new MyHttpClientDownloader(ctx));
+		mSourceManager = SourceManager.instance().initialize(new MyHttpClientDownloader(ctx), ctx);
 	}
 
 	private void initPictureIfNeed() {
@@ -139,7 +139,7 @@ public class UrlImageList extends CachedImageList {
 
 	public IImage getImageAt(int i) {
 		BasePicture pic = mPictures.get(i);
-		return new UrlImage(mContext, this, i, pic.id);
+		return new UrlImage(mContext, this, i, pic.id, pic.url);
 	}
 
 	public IImage getImageForUri(Uri uri) {
@@ -147,8 +147,8 @@ public class UrlImageList extends CachedImageList {
 		BasePicture pic;
 		for (int i = 0; i < mPictures.size(); i++) {
 			pic = mPictures.get(i);
-			if (pic.id.equals(mSourceManager.getPictureId(uri.toString()))) {
-				return new UrlImage(mContext, this, i, pic.id);
+			if (pic.url.equals(mSourceManager.getPictureId(uri.toString()))) {
+				return new UrlImage(mContext, this, i, pic.id, pic.url);
 			}
 		}
 		return null;

@@ -53,7 +53,7 @@ public abstract class BaseImage implements IImage {
 	protected final int mIndex;
 	protected String mMimeType;
 	private final long mDateTaken;
-	private String mTitle;
+	protected String mTitle;
 
 	protected BaseImageList mContainer;
 

@@ -30,6 +30,15 @@
                 android:entryValues="@array/pref_gallery_size_values"
                 android:dialogTitle="@string/pref_gallery_size_dialogtitle"
                 android:defaultValue="@string/default_value_pref_gallery_size" />
+        
+        <ListPreference
+                android:key="pref_gallery_network_source"
+                android:title="@string/pref_gallery_network_source_title"
+                android:summary="@string/pref_gallery_network_source_summary"
+                android:entries="@array/pref_gallery_network_source_choices"
+                android:entryValues="@array/pref_gallery_network_source_values"
+                android:dialogTitle="@string/pref_gallery_network_source_title"
+                android:defaultValue="@string/default_value_pref_gallery_network_source" />
 
         <!-- Sort order -->
         <ListPreference

@@ -122,8 +122,8 @@ public class HttpGalleryPicker extends GalleryPicker {
 			Bitmap temp = null;
 			IImage image = i < count ? images.getImageAt(i) : null;
 
-			final int requestWidth = (int)(imageWidth * 1.3);
-			final int requestHeight = (int)(imageHeight * 1.3);
+			final int requestWidth = (int)(imageWidth);
+			final int requestHeight = (int)(imageHeight);
 			if (image != null) {
 				temp = image.thumbBitmap(requestWidth, requestHeight);
 			}

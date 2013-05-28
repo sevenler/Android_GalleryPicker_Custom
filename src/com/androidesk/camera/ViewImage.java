@@ -884,9 +884,9 @@ public class ViewImage extends NoSearchActivity implements View.OnClickListener 
 	}
 
 	private IImageList checkHttpDataIfNeed(Uri uri) {
-		String cid = getIntent().getExtras().getString("classId");
 		if ("http".equals(uri.getScheme())) {
-			IImageList images = new UrlImageList(this, UrlImageList.LOCATION_CATALOG, cid, 90);
+			String cid = getIntent().getExtras().getString("classId");
+			IImageList images = new UrlImageList(this, UrlImageList.LOCATION_CATALOG, cid);
 			return images;
 		}
 		return null;

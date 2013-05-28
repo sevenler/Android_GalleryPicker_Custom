@@ -8,12 +8,9 @@ import java.util.Arrays;
 
 import org.json.JSONException;
 
-import android.net.Uri;
-
 public abstract class BaseCatalogList extends FileSerialize {
 	protected BaseCatalog[] mCatalogs;
 	protected int mCount;
-	public Uri mUri;//获取列表来源地址
 
 	public void set(int index, BaseCatalog cls){
 		mCatalogs[index] = cls;

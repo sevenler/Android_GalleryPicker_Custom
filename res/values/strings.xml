@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2007 The Android Open Source Project
+<!--
+     Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -15,7 +16,9 @@
 -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
     <!-- General strings -->
+
 
     <!-- label for the icon meaning 'show me all the images' -->
     <string name="all_images">All pictures</string>
@@ -29,8 +32,10 @@
     <!-- label for the 'pictures application shown in the top level 'all applications' -->
     <string name="gallery_picker_label">Gallery</string>
 
-    <!-- label for the gallery application (displayed when the user needs to
-         choose an application to pick a picture or a video) -->
+    <!--
+         label for the gallery application (displayed when the user needs to
+         choose an application to pick a picture or a video)
+    -->
     <string name="gallery_label">Gallery</string>
 
     <!-- label for the folder that contains Camera pictures in the gallery -->
@@ -74,12 +79,12 @@
 
     <!-- Settings stuff -->
 
+
     <!-- Toast/alert that the image is being saved to the SD card -->
     <string name="savingImage">Saving picture\u2026</string>
 
     <!-- Toast/alert that the face detection is being run -->
     <string name="runningFaceDetection">Please wait\u2026</string>
-
 
     <!-- Menu items: -->
     <!-- menu pick to view the currently selected image -->
@@ -88,7 +93,7 @@
     <!-- menu pick to view the details of the currently selected image -->
     <string name="details">Details</string>
 
-    <!-- menu pick to show the location of the currently selected image on maps-->
+    <!-- menu pick to show the location of the currently selected image on maps -->
     <string name="show_on_map">Show on Maps</string>
 
     <!-- menu pick to rotate the currently selected image (brings up submenu) -->
@@ -158,7 +163,7 @@
 
     <!-- Menu item for playing the video. -->
     <string name="video_play">Play</string>
-    
+
     <!-- Menu item for clear disc cache -->
     <string name="clear_disc_cache">Clear disc cache</string>
 
@@ -166,21 +171,34 @@
     <string name="camera_pick_wallpaper">Pictures</string>
     <string name="camera_setas_wallpaper">Wallpaper</string>
 
-    <!-- Settings screen, section heading  -->
+    <!-- Settings screen, section heading -->
     <string name="pref_gallery_category">General settings</string>
 
-    <!-- Settings screen, section heading  -->
+    <!-- Settings screen, section heading -->
     <string name="pref_slideshow_category">Slideshow settings</string>
 
     <!-- Settings screen, setting summary text -->
     <string name="pref_gallery_size_title">Display size</string>
+    <string name="pref_gallery_network_source_title">Network data source</string>
+    <string name="pref_gallery_network_source_summary">"Choose the network source to load image"</string>
 
     <!-- Settings screen, title for preference for image size to be used in the im -->
     <string name="pref_gallery_size_summary">Choose the display size of pictures and videos</string>
     <!-- Title of dialog that appears after selecting Picture size setting option -->
     <string name="pref_gallery_size_dialogtitle">Picture size</string>
+
+    <string-array name="pref_gallery_network_source_choices">
+        <item>"Androidesk"</item>
+        <item>"Baidu wallpaper"</item>
+    </string-array>
+    <string-array name="pref_gallery_network_source_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+     <string name="default_value_pref_gallery_network_source" translatable="false">0</string>
     <!-- Options in dialog that appears after selecting Picture size setting option -->
     <string-array name="pref_gallery_size_choices">
+
         <!-- size choice of "large" -->
         <item>Large</item>
         <!-- size choice of "small" -->
@@ -201,6 +219,7 @@
     <string name="pref_gallery_sort_dialogtitle">Picture sort</string>
     <!-- Options in dialog that appears after selecting Picture sort setting option -->
     <string-array name="pref_gallery_sort_choices">
+
         <!-- Preference choice to show "newest first" -->
         <item>Newest first</item>
         <!-- Preference choice to show "newest last" -->
@@ -221,6 +240,7 @@
     <string name="pref_gallery_slideshow_interval_dialogtitle">Slideshow interval</string>
     <!-- Options in dialog that appears after selecting Slideshow interval setting option -->
     <string-array name="pref_gallery_slideshow_interval_choices">
+
         <!-- slide show interval "N seconds" where N is 2 -->
         <item>2 seconds</item>
         <!-- slide show interval "N seconds" where N is 3 -->
@@ -242,9 +262,12 @@
     <string name="pref_gallery_slideshow_transition_summary">Choose the effect used when moving from one slide to the next</string>
     <!-- Title of dialog that appears after selecting Slideshow transition setting option -->
     <string name="pref_gallery_slideshow_transition_dialogtitle">Slideshow transition</string>
-    <!-- Options in dialog that appears after selecting Slideshow transition
-     setting option -->
+    <!--
+     Options in dialog that appears after selecting Slideshow transition
+     setting option
+    -->
     <string-array name="pref_gallery_slideshow_transition_choices">
+
         <!-- Slide show transition to fade in and fade out -->
         <item>Fade in &amp; out</item>
         <!-- Slide show transition to slide in and out from the left and right -->
@@ -279,47 +302,49 @@
     <!-- Menu item to go to the settings screen -->
     <string name="camerasettings">Settings</string>
 
-    <!-- Text message indicating that there are no pictures or videos in a particular
-         bucket on the SD card -->
+    <!--
+         Text message indicating that there are no pictures or videos in a particular
+         bucket on the SD card
+    -->
     <string name="image_gallery_NoImageView_text">No media found.</string>
 
-    <!-- Preference title for whether the user should be prompted form confirmation when deleting images  -->
+    <!-- Preference title for whether the user should be prompted form confirmation when deleting images -->
     <string name="pref_gallery_confirm_delete_title">Confirm deletions</string>
 
-    <!-- Preference summary for whether the user should be prompted form confirmation when deleting images  -->
+    <!-- Preference summary for whether the user should be prompted form confirmation when deleting images -->
     <string name="pref_gallery_confirm_delete_summary">Show confirmation before deleting a picture or video</string>
 
     <!-- Message to show when there's no lat/lng information in the image -->
     <string name="no_location_image">There\'s no location information stored in this image.</string>
-    <!-- Title of Details dialog  -->
+    <!-- Title of Details dialog -->
     <string name="details_panel_title">Details</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_file_size">File size:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_image_resolution">Resolution:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_image_make">Manufacturer:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_image_model">Model:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_image_whitebalance">WhiteBalance:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_image_latitude">GPS latitude:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_image_longitude">GPS longitude:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_image_location">Location:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_duration">Duration:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_date_taken">Date taken:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_frame_rate">Frame rate:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_bit_rate">Bit rate:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_codec">Codec:</string>
-    <!-- Label in message of Details dialog  -->
+    <!-- Label in message of Details dialog -->
     <string name="details_format">Format:</string>
 
     <!-- Used to format image dimensions in Details dialog. e.g. 64 x 64 -->
@@ -329,7 +354,7 @@
     <!-- Used to format video duration in Details dialog. hours:minutes:seconds e.g. 0:21:30 -->
     <string name="details_hms"><xliff:g id="hours">%1$d</xliff:g>:<xliff:g id="minutes">%2$02d</xliff:g>:<xliff:g id="seconds">%3$02d</xliff:g></string>
     <!-- Unit of measure in the Details dialog frames per second. e.g. 20 fps -->
-        <string name="details_fps"><xliff:g id="frames" example="30">%1$d</xliff:g> fps</string>
+    <string name="details_fps"><xliff:g id="frames" example="30">%1$d</xliff:g> fps</string>
     <!-- Unit of measure in the Details dialog K bits per second. e.g. 192 Kbps -->
     <string name="details_kbps"><xliff:g id="speed" example="192">%1$d</xliff:g> Kbps</string>
     <!-- Unit of measure in the Details dialog M bits per second. e.g. 2.3 Mbps -->
@@ -356,20 +381,28 @@
     <!-- Activity title when in the image gallery to select a video -->
     <string name="pick_videos_gallery_title">Choose video</string>
 
-    <!-- Displayed in the title of the dialog for things to do with a picture that
-         is to be sent to another application: -->
+    <!--
+         Displayed in the title of the dialog for things to do with a picture that
+         is to be sent to another application:
+    -->
     <string name="sendImage">Share picture via</string>
 
-    <!-- Displayed in the title of the dialog for things to do with a picture that
-         is to be "set as" (e.g. set as contact photo or set as wallpaper) -->
+    <!--
+         Displayed in the title of the dialog for things to do with a picture that
+         is to be "set as" (e.g. set as contact photo or set as wallpaper)
+    -->
     <string name="setImage">Set picture as</string>
 
-    <!-- Displayed in the title of the dialog for things to do with a video that
-         is to be sent to another application. -->
+    <!--
+         Displayed in the title of the dialog for things to do with a video that
+         is to be sent to another application.
+    -->
     <string name="sendVideo">Share video via</string>
 
-    <!-- Displayed in the title of the dialog for things to do with media files that
-         are to be sent to another application: -->
+    <!--
+         Displayed in the title of the dialog for things to do with media files that
+         are to be sent to another application:
+    -->
     <string name="send_media_files">Share media files via</string>
 
     <!-- Activity label. This might show up in the activity-picker -->
@@ -409,4 +442,5 @@
 
     <!-- The messsage shown on progress dialog when deleting images -->
     <string name="delete_images_message">Deleting images\u2026</string>
+
 </resources>
